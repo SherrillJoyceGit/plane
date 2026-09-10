@@ -35,7 +35,7 @@ function HomePage() {
 
   // if instance is fetched and setup is not done, show setup form
   if (instance && !instance?.is_setup_done) {
-    return <InstanceSetupForm />;
+    return <InstanceSetupForm isTelemetryEnabled={instance.is_telemetry_enabled} />;
   }
 
   // if instance is fetched and setup is done, show sign in form

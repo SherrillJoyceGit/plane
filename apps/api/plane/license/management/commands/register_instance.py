@@ -38,6 +38,9 @@ class Command(BaseCommand):
             return "v0.1.0"
 
     def check_for_latest_version(self, fallback_version):
+        if os.environ.get("PLANE_OFFLINE_MODE") == "1":
+            return fallback_version
+
         try:
             response = requests.get(
                 "https://api.github.com/repos/makeplane/plane/releases/latest",
@@ -53,6 +56,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Check if the instance is registered
         instance = Instance.objects.first()
+        offline_mode = os.environ.get("PLANE_OFFLINE_MODE") == "1"
 
         current_version = self.check_for_current_version()
         latest_version = self.check_for_latest_version(current_version)
@@ -71,6 +75,7 @@ class Command(BaseCommand):
                 latest_version=latest_version,
                 last_checked_at=timezone.now(),
                 is_test=os.environ.get("IS_TEST", "0") == "1",
+                is_telemetry_enabled=not offline_mode,
                 edition=InstanceEdition.PLANE_COMMUNITY.value,
             )
 
@@ -83,10 +88,13 @@ class Command(BaseCommand):
             instance.current_version = current_version
             instance.latest_version = latest_version
             instance.is_test = os.environ.get("IS_TEST", "0") == "1"
+            if offline_mode:
+                instance.is_telemetry_enabled = False
             instance.edition = InstanceEdition.PLANE_COMMUNITY.value
             instance.save()
 
         # Push instance metrics on registration
-        push_instance_metrics.delay()
+        if not offline_mode:
+            push_instance_metrics.delay()
 
         return

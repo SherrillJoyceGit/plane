@@ -48,23 +48,27 @@ type TFormData = {
   is_telemetry_enabled: boolean;
 };
 
-const defaultFromData: TFormData = {
+const defaultFormData: TFormData = {
   first_name: "",
   last_name: "",
   email: "",
   company_name: "",
   password: "",
-  is_telemetry_enabled: true,
+  is_telemetry_enabled: false,
 };
 
-export function InstanceSetupForm() {
+type TInstanceSetupFormProps = {
+  isTelemetryEnabled: boolean;
+};
+
+export function InstanceSetupForm({ isTelemetryEnabled }: TInstanceSetupFormProps) {
   // search params
   const searchParams = useSearchParams();
   const firstNameParam = searchParams?.get("first_name") || undefined;
   const lastNameParam = searchParams?.get("last_name") || undefined;
   const companyParam = searchParams?.get("company") || undefined;
   const emailParam = searchParams?.get("email") || undefined;
-  const isTelemetryEnabledParam = (searchParams?.get("is_telemetry_enabled") === "True" ? true : false) || true;
+  const isTelemetryEnabledParam = searchParams?.get("is_telemetry_enabled");
   const errorCode = searchParams?.get("error_code") || undefined;
   const errorMessage = searchParams?.get("error_message") || undefined;
   // state
@@ -73,7 +77,10 @@ export function InstanceSetupForm() {
     retypePassword: false,
   });
   const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined);
-  const [formData, setFormData] = useState<TFormData>(defaultFromData);
+  const [formData, setFormData] = useState<TFormData>({
+    ...defaultFormData,
+    is_telemetry_enabled: isTelemetryEnabled,
+  });
   const [isPasswordInputFocused, setIsPasswordInputFocused] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRetryPasswordInputFocused, setIsRetryPasswordInputFocused] = useState(false);
@@ -94,7 +101,8 @@ export function InstanceSetupForm() {
     if (lastNameParam) setFormData((prev) => ({ ...prev, last_name: lastNameParam }));
     if (companyParam) setFormData((prev) => ({ ...prev, company_name: companyParam }));
     if (emailParam) setFormData((prev) => ({ ...prev, email: emailParam }));
-    if (isTelemetryEnabledParam) setFormData((prev) => ({ ...prev, is_telemetry_enabled: isTelemetryEnabledParam }));
+    if (isTelemetryEnabledParam)
+      setFormData((prev) => ({ ...prev, is_telemetry_enabled: isTelemetryEnabledParam === "True" }));
   }, [firstNameParam, lastNameParam, companyParam, emailParam, isTelemetryEnabledParam]);
 
   // derived values
@@ -121,14 +129,12 @@ export function InstanceSetupForm() {
 
   const isButtonDisabled = useMemo(
     () =>
-      !isSubmitting &&
-      formData.first_name &&
-      formData.email &&
-      formData.password &&
-      getPasswordStrength(formData.password) === E_PASSWORD_STRENGTH.STRENGTH_VALID &&
-      formData.password === formData.confirm_password
-        ? false
-        : true,
+      isSubmitting ||
+      !formData.first_name ||
+      !formData.email ||
+      !formData.password ||
+      getPasswordStrength(formData.password) !== E_PASSWORD_STRENGTH.STRENGTH_VALID ||
+      formData.password !== formData.confirm_password,
     [formData.confirm_password, formData.email, formData.first_name, formData.password, isSubmitting]
   );
 
@@ -180,6 +186,7 @@ export function InstanceSetupForm() {
                     }
                   }}
                   autoComplete="off"
+                  // eslint-disable-next-line jsx-a11y/no-autofocus -- Focus the first field on the dedicated setup page.
                   autoFocus
                   maxLength={50}
                 />
@@ -221,7 +228,7 @@ export function InstanceSetupForm() {
                 placeholder="name@company.com"
                 value={formData.email}
                 onChange={(e) => handleFormChange("email", e.target.value)}
-                hasError={errorData.type && errorData.type === EErrorCodes.INVALID_EMAIL ? true : false}
+                hasError={errorData.type === EErrorCodes.INVALID_EMAIL}
                 autoComplete="off"
               />
               {errorData.type && errorData.type === EErrorCodes.INVALID_EMAIL && errorData.message && (
@@ -265,7 +272,7 @@ export function InstanceSetupForm() {
                   placeholder="New password"
                   value={formData.password}
                   onChange={(e) => handleFormChange("password", e.target.value)}
-                  hasError={errorData.type && errorData.type === EErrorCodes.INVALID_PASSWORD ? true : false}
+                  hasError={errorData.type === EErrorCodes.INVALID_PASSWORD}
                   onFocus={() => setIsPasswordInputFocused(true)}
                   onBlur={() => setIsPasswordInputFocused(false)}
                   autoComplete="new-password"
