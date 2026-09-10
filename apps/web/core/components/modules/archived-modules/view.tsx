@@ -5,6 +5,7 @@
  */
 
 import { observer } from "mobx-react";
+import { useTranslation } from "@plane/i18n";
 // assets
 import AllFiltersImage from "@/app/assets/empty-state/module/all-filters.svg?url";
 import NameFilterImage from "@/app/assets/empty-state/module/name-filter.svg?url";
@@ -23,6 +24,7 @@ export interface IArchivedModulesView {
 
 export const ArchivedModulesView = observer(function ArchivedModulesView(props: IArchivedModulesView) {
   const { workspaceSlug, projectId } = props;
+  const { t } = useTranslation();
   // store hooks
   const { getFilteredArchivedModuleIds, loader } = useModule();
   const { archivedModulesSearchQuery } = useModuleFilter();
@@ -38,13 +40,13 @@ export const ArchivedModulesView = observer(function ArchivedModulesView(props: 
           <img
             src={archivedModulesSearchQuery.trim() === "" ? AllFiltersImage : NameFilterImage}
             className="mx-auto h-36 w-36 sm:h-48 sm:w-48"
-            alt="No matching modules"
+            alt={t("module.empty_search.no_matching")}
           />
-          <h5 className="mt-7 mb-1 text-18 font-medium">No matching modules</h5>
+          <h5 className="mt-7 mb-1 text-18 font-medium">{t("module.empty_search.no_matching")}</h5>
           <p className="text-14 text-placeholder">
             {archivedModulesSearchQuery.trim() === ""
-              ? "Remove the filters to see all modules"
-              : "Remove the search criteria to see all modules"}
+              ? t("module.empty_search.remove_filters")
+              : t("module.empty_search.remove_search")}
           </p>
         </div>
       </div>

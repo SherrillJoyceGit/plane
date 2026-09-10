@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 // ui
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
@@ -24,6 +25,7 @@ type Props = {
 
 export function ArchiveModuleModal(props: Props) {
   const { workspaceSlug, projectId, moduleId, isOpen, handleClose } = props;
+  const { t } = useTranslation();
   // router
   const router = useAppRouter();
   // states
@@ -44,8 +46,8 @@ export function ArchiveModuleModal(props: Props) {
       .then(() => {
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "Archive success",
-          message: "Your archives can be found in project archives.",
+          title: t("module.archive.success_title"),
+          message: t("module.archive.success_message"),
         });
         onClose();
         router.push(`/${workspaceSlug}/projects/${projectId}/modules`);
@@ -54,8 +56,8 @@ export function ArchiveModuleModal(props: Props) {
       .catch(() =>
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "Error!",
-          message: "Module could not be archived. Please try again.",
+          title: t("common.error.label"),
+          message: t("module.archive.failed"),
         })
       )
       .finally(() => setIsArchiving(false));
@@ -64,16 +66,16 @@ export function ArchiveModuleModal(props: Props) {
   return (
     <ModalCore isOpen={isOpen} handleClose={onClose} position={EModalPosition.CENTER} width={EModalWidth.LG}>
       <div className="px-5 py-4">
-        <h3 className="text-18 font-medium 2xl:text-20">Archive module {moduleName}</h3>
-        <p className="mt-3 text-13 text-secondary">
-          Are you sure you want to archive the module? All your archives can be restored later.
-        </p>
+        <h3 className="text-18 font-medium 2xl:text-20">
+          {t("project_module.archive_module")} {moduleName}
+        </h3>
+        <p className="mt-3 text-13 text-secondary">{t("module.archive.confirm")}</p>
         <div className="mt-3 flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button variant="primary" size="lg" tabIndex={1} onClick={handleArchiveModule} loading={isArchiving}>
-            {isArchiving ? "Archiving" : "Archive"}
+            {isArchiving ? t("common.archiving") : t("common.archive")}
           </Button>
         </div>
       </div>

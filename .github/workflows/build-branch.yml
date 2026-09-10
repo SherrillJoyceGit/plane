@@ -14,7 +14,7 @@ on:
       releaseVersion:
         description: "Release Version"
         type: string
-        default: tc-plane-v0.0.1
+        default: tc-plane-v0.0.2
       isPrerelease:
         description: "Is Pre-release"
         type: boolean
@@ -119,7 +119,7 @@ jobs:
             if [[ ! $FLAT_RELEASE_VERSION =~ $semver_regex ]]; then
               echo "Invalid Release Version Format : $FLAT_RELEASE_VERSION"
               echo "Please provide a valid TC Plane SemVer version"
-              echo "e.g. tc-plane-v0.0.1 or tc-plane-v0.1.0-rc.1"
+              echo "e.g. tc-plane-v0.0.2 or tc-plane-v0.1.0-rc.1"
               echo "Exiting the build process"
               exit 1  # Exit with status 1 to fail the step
             fi

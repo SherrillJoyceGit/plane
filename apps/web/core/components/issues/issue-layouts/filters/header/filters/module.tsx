@@ -8,6 +8,7 @@ import React, { useMemo, useState } from "react";
 import { sortBy } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
+import { useTranslation } from "@plane/i18n";
 // components
 import { ModuleIcon } from "@plane/propel/icons";
 import { Loader } from "@plane/ui";
@@ -25,6 +26,7 @@ export const FilterModule = observer(function FilterModule(props: Props) {
   const { appliedFilters, handleUpdate, searchQuery } = props;
   // hooks
   const { projectId } = useParams();
+  const { t } = useTranslation();
   const { getModuleById, getProjectModuleIds } = useModule();
   // states
   const [itemsToRender, setItemsToRender] = useState(5);
@@ -56,7 +58,7 @@ export const FilterModule = observer(function FilterModule(props: Props) {
   return (
     <>
       <FilterHeader
-        title={`Module ${appliedFiltersCount > 0 ? ` (${appliedFiltersCount})` : ""}`}
+        title={`${t("common.module")} ${appliedFiltersCount > 0 ? ` (${appliedFiltersCount})` : ""}`}
         isPreviewEnabled={previewEnabled}
         handleIsPreviewEnabled={() => setPreviewEnabled(!previewEnabled)}
       />

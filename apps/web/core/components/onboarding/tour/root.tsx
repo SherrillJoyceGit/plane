@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 // plane imports
 import { Button } from "@plane/propel/button";
 import { CloseIcon, PlaneLockup } from "@plane/propel/icons";
+import { useTranslation } from "@plane/i18n";
 // assets
 import CyclesTour from "@/app/assets/onboarding/cycles.webp?url";
 import IssuesTour from "@/app/assets/onboarding/issues.webp?url";
@@ -54,8 +55,8 @@ const TOUR_STEPS: {
   },
   {
     key: "modules",
-    title: "Break into modules",
-    description: "Modules break your big thing into Projects or Features, to help you organize better.",
+    title: "",
+    description: "",
     image: ModulesTour,
     prevStep: "cycles",
     nextStep: "views",
@@ -80,6 +81,7 @@ const TOUR_STEPS: {
 
 export const TourRoot = observer(function TourRoot(props: TOnboardingTourProps) {
   const { onComplete } = props;
+  const { t } = useTranslation();
   // states
   const [step, setStep] = useState<TTourSteps>("welcome");
   // store hooks
@@ -88,6 +90,10 @@ export const TourRoot = observer(function TourRoot(props: TOnboardingTourProps) 
 
   const currentStepIndex = TOUR_STEPS.findIndex((tourStep) => tourStep.key === step);
   const currentStep = TOUR_STEPS[currentStepIndex];
+  const currentStepTitle =
+    currentStep?.key === "modules" ? t("product_tour.module.step_zero.title") : currentStep?.title;
+  const currentStepDescription =
+    currentStep?.key === "modules" ? t("product_tour.module.step_zero.description") : currentStep?.description;
 
   return (
     <>
@@ -145,11 +151,11 @@ export const TourRoot = observer(function TourRoot(props: TOnboardingTourProps) 
                 currentStepIndex % 2 === 0 ? "justify-end" : "justify-start"
               }`}
             >
-              <img src={currentStep?.image} className="h-full w-full object-cover" alt={currentStep?.title} />
+              <img src={currentStep?.image} className="h-full w-full object-cover" alt={currentStepTitle} />
             </div>
             <div className="flex h-1/2 flex-col overflow-y-auto p-4 sm:h-2/5">
-              <h3 className="font-semibold sm:text-18">{currentStep?.title}</h3>
-              <p className="mt-3 text-13 text-secondary">{currentStep?.description}</p>
+              <h3 className="font-semibold sm:text-18">{currentStepTitle}</h3>
+              <p className="mt-3 text-13 text-secondary">{currentStepDescription}</p>
               <div className="mt-3 flex h-full items-end justify-between gap-4">
                 <div className="flex items-center gap-4">
                   {currentStep?.prevStep && (

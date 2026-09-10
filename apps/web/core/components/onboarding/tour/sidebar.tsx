@@ -6,6 +6,7 @@
 
 // plane imports
 import { CycleIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@plane/propel/icons";
+import { useTranslation } from "@plane/i18n";
 import type { ISvgIcons } from "@plane/propel/icons";
 // types
 import type { TTourSteps } from "./root";
@@ -27,7 +28,7 @@ const sidebarOptions: {
   },
   {
     key: "modules",
-    label: "Modules",
+    label: "",
     Icon: ModuleIcon,
   },
   {
@@ -48,6 +49,7 @@ type Props = {
 };
 
 export function TourSidebar({ step, setStep }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="col-span-3 hidden bg-surface-2 p-8 lg:block">
       <h3 className="text-16 font-medium">
@@ -68,7 +70,7 @@ export function TourSidebar({ step, setStep }: Props) {
             role="button"
           >
             <option.Icon className="h-4 w-4" aria-hidden="true" />
-            {option.label}
+            {option.key === "modules" ? t("common.modules") : option.label}
           </h5>
         ))}
       </div>

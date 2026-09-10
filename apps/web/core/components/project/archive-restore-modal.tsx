@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 // ui
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
@@ -24,6 +25,7 @@ type Props = {
 
 export function ArchiveRestoreProjectModal(props: Props) {
   const { workspaceSlug, projectId, isOpen, onClose, archive } = props;
+  const { t } = useTranslation();
   // router
   const router = useAppRouter();
   // states
@@ -93,7 +95,7 @@ export function ArchiveRestoreProjectModal(props: Props) {
         </h3>
         <p className="mt-3 text-13 text-secondary">
           {archive
-            ? "This project and its work items, cycles, modules, and pages will be archived. Its work items won't appear in search. Only project admins can restore the project."
+            ? t("module.project_archive_description")
             : "Restoring a project will activate it and make it visible to all members of the project. Are you sure you want to continue?"}
         </p>
         <div className="mt-3 flex justify-end gap-2">

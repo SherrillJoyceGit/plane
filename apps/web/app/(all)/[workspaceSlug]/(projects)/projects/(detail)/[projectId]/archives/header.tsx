@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import { ArchiveIcon, CycleIcon, ModuleIcon, WorkItemsIcon } from "@plane/propel/icons";
 import { Tooltip } from "@plane/propel/tooltip";
 import { EIssuesStoreType } from "@plane/types";
+import { useTranslation } from "@plane/i18n";
 // ui
 import { Breadcrumbs, Header } from "@plane/ui";
 // components
@@ -27,23 +28,23 @@ type TProps = {
 
 const PROJECT_ARCHIVES_BREADCRUMB_LIST: {
   [key: string]: {
-    label: string;
+    i18nKey: string;
     href: string;
     icon: React.FC<React.SVGAttributes<SVGElement> & { className?: string }>;
   };
 } = {
   issues: {
-    label: "Work items",
+    i18nKey: "common.work_items",
     href: "/issues",
     icon: WorkItemsIcon,
   },
   cycles: {
-    label: "Cycles",
+    i18nKey: "common.cycles",
     href: "/cycles",
     icon: CycleIcon,
   },
   modules: {
-    label: "Modules",
+    i18nKey: "common.modules",
     href: "/modules",
     icon: ModuleIcon,
   },
@@ -59,6 +60,7 @@ export const ProjectArchivesHeader = observer(function ProjectArchivesHeader(pro
     issues: { getGroupIssueCount },
   } = useIssues(EIssuesStoreType.ARCHIVED);
   const { loader } = useProject();
+  const { t } = useTranslation();
   // hooks
   const { isMobile } = usePlatformOS();
 
@@ -86,7 +88,7 @@ export const ProjectArchivesHeader = observer(function ProjectArchivesHeader(pro
               <Breadcrumbs.Item
                 component={
                   <BreadcrumbLink
-                    label={activeTabBreadcrumbDetail.label}
+                    label={t(activeTabBreadcrumbDetail.i18nKey)}
                     icon={<activeTabBreadcrumbDetail.icon className="h-4 w-4 text-tertiary" />}
                   />
                 }

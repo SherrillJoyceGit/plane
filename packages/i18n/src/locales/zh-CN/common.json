@@ -213,7 +213,7 @@
   "open_project": "打开项目",
   "issues": "工作项",
   "cycles": "周期",
-  "modules": "模块",
+  "modules": "版本",
   "pages": "页面",
   "intake": "收集",
   "renew": "更新",
@@ -429,8 +429,8 @@
     "project": "项目",
     "cycle": "周期",
     "cycles": "周期",
-    "module": "模块",
-    "modules": "模块",
+    "module": "版本",
+    "modules": "版本",
     "labels": "标签",
     "label": "标签",
     "admins": "管理员",
@@ -789,7 +789,7 @@
     },
     "member": {
       "title": "成员",
-      "description": "可以在项目、周期和模块内读取、写入、编辑和删除实体"
+      "description": "可以在项目、周期和版本内读取、写入、编辑和删除实体"
     },
     "admin": {
       "title": "管理员",

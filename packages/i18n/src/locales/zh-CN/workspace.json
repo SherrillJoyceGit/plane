@@ -74,7 +74,7 @@
     "selected_projects": "已选择的项目",
     "total_members": "总成员数",
     "total_cycles": "总周期数",
-    "total_modules": "总模块数",
+    "total_modules": "总版本数",
     "pending_work_items": {
       "title": "待处理工作项",
       "empty_state": "同事的待处理工作项分析将显示在这里。"
@@ -126,8 +126,8 @@
         "primary_button": {
           "text": "开始您的第一个项目",
           "comic": {
-            "title": "分析功能在周期 + 模块中效果最佳",
-            "description": "首先，将您的问题在周期中进行时间限制，如果可能的话，将跨越多个周期的问题分组到模块中。在左侧导航中查看这两个功能。"
+            "title": "分析功能在周期 + 版本中效果最佳",
+            "description": "首先，将您的问题在周期中进行时间限制，如果可能的话，将跨越多个周期的问题分组到版本中。在左侧导航中查看这两个功能。"
           }
         }
       },
@@ -137,7 +137,7 @@
       },
       "module_progress": {
         "title": "尚无数据",
-        "description": "模块进度分析将显示在此处。将工作项添加到模块中以开始跟踪进度。"
+        "description": "版本进度分析将显示在此处。将工作项添加到版本中以开始跟踪进度。"
       },
       "intake_trends": {
         "title": "尚无数据",
@@ -169,7 +169,7 @@
     "error": {
       "permission": "您没有执行此操作的权限。",
       "cycle_delete": "删除周期失败",
-      "module_delete": "删除模块失败",
+      "module_delete": "删除版本失败",
       "issue_delete": "删除工作项失败"
     },
     "state": {
@@ -196,7 +196,7 @@
     "empty_state": {
       "general": {
         "title": "没有活动项目",
-        "description": "将每个项目视为目标导向工作的父级。项目是工作项、周期和模块所在的地方，与您的同事一起帮助您实现目标。创建新项目或筛选已归档的项目。",
+        "description": "将每个项目视为目标导向工作的父级。项目是工作项、周期和版本所在的地方，与您的同事一起帮助您实现目标。创建新项目或筛选已归档的项目。",
         "primary_button": {
           "text": "开始您的第一个项目",
           "comic": {

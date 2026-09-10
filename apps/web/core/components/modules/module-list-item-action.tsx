@@ -70,14 +70,14 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
     );
 
     setPromiseToast(addToFavoritePromise, {
-      loading: "Adding module to favorites...",
+      loading: t("module.favorite.add_loading"),
       success: {
-        title: "Success!",
-        message: () => "Module added to favorites.",
+        title: t("common.success"),
+        message: () => t("module.favorite.add_success"),
       },
       error: {
-        title: "Error!",
-        message: () => "Couldn't add the module to favorites. Please try again.",
+        title: t("common.error.label"),
+        message: () => t("module.favorite.add_failed"),
       },
     });
   };
@@ -94,14 +94,14 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
     );
 
     setPromiseToast(removeFromFavoritePromise, {
-      loading: "Removing module from favorites...",
+      loading: t("module.favorite.remove_loading"),
       success: {
-        title: "Success!",
-        message: () => "Module removed from favorites.",
+        title: t("common.success"),
+        message: () => t("module.favorite.remove_success"),
       },
       error: {
-        title: "Error!",
-        message: () => "Couldn't remove the module from favorites. Please try again.",
+        title: t("common.error.label"),
+        message: () => t("module.favorite.remove_failed"),
       },
     });
   };
@@ -113,15 +113,15 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
       .then(() => {
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "Success!",
-          message: "Module updated successfully.",
+          title: t("common.success"),
+          message: t("entity.update.success", { entity: t("common.module") }),
         });
       })
       .catch((err) => {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "Error!",
-          message: err?.detail ?? "Module could not be updated. Please try again.",
+          title: t("common.error.label"),
+          message: err?.detail ?? t("entity.update.failed", { entity: t("common.module") }),
         });
       });
   };

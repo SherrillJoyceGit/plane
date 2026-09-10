@@ -2,6 +2,65 @@
   "module": {
     "label": "{count, plural, one {Modulo} other {Moduli}}",
     "no_module": "Nessun modulo",
-    "select": "Aggiungi moduli"
+    "select": "Aggiungi moduli",
+    "not_found": {
+      "title": "Module does not exist",
+      "description": "The module you are looking for does not exist or has been deleted.",
+      "view_others": "View other modules"
+    },
+    "create": {
+      "success": "Module created successfully.",
+      "failed": "Module could not be created. Please try again."
+    },
+    "delete": {
+      "confirm": "Are you sure you want to delete module-{name}? All of the data related to the module will be permanently removed. This action cannot be undone."
+    },
+    "archive": {
+      "confirm": "Are you sure you want to archive the module? All your archives can be restored later.",
+      "success_title": "Archive success",
+      "success_message": "Your archives can be found in project archives.",
+      "failed": "Module could not be archived. Please try again."
+    },
+    "restore": {
+      "success_title": "Restore success",
+      "success_message": "Your module can be found in project modules.",
+      "failed": "Module could not be restored. Please try again."
+    },
+    "favorite": {
+      "add_loading": "Adding module to favorites...",
+      "add_success": "Module added to favorites.",
+      "add_failed": "Couldn't add the module to favorites. Please try again.",
+      "remove_loading": "Removing module from favorites...",
+      "remove_success": "Module removed from favorites.",
+      "remove_failed": "Couldn't remove the module from favorites. Please try again."
+    },
+    "empty_search": {
+      "no_matching": "No matching modules",
+      "remove_filters": "Remove the filters to see all modules",
+      "remove_search": "Remove the search criteria to see all modules"
+    },
+    "work_items": {
+      "add_success": "Work items added to the module successfully.",
+      "add_failed": "Selected work items could not be added to the module. Please try again.",
+      "remove": "Remove from module"
+    },
+    "activity": {
+      "added": "added this work item to the module",
+      "added_prefix": "added",
+      "added_suffix": "to the module",
+      "set": "set the module to",
+      "removed": "removed the work item from the module",
+      "removed_prefix": "removed",
+      "removed_suffix": "from the module",
+      "project_added": "added this project to the module",
+      "project_removed": "removed this project from the module",
+      "unknown": "Unknown module"
+    },
+    "webhook": {
+      "label": "Modules",
+      "description": "Module created, updated, or deleted",
+      "work_item_description": "Work item created, updated, deleted, added to a cycle or module"
+    },
+    "project_archive_description": "This project and its work items, cycles, modules, and pages will be archived. Its work items won't appear in search. Only project admins can restore the project."
   }
 }

@@ -1,7 +1,66 @@
 {
   "module": {
-    "label": "{count, plural, one {模块} other {模块}}",
-    "no_module": "无模块",
-    "select": "添加模块"
+    "label": "{count, plural, one {版本} other {版本}}",
+    "no_module": "无版本",
+    "select": "添加版本",
+    "not_found": {
+      "title": "版本不存在",
+      "description": "您查找的版本不存在或已被删除。",
+      "view_others": "查看其他版本"
+    },
+    "create": {
+      "success": "版本创建成功。",
+      "failed": "无法创建版本，请重试。"
+    },
+    "delete": {
+      "confirm": "确定要删除版本“{name}”吗？与该版本相关的所有数据将被永久删除，此操作无法撤销。"
+    },
+    "archive": {
+      "confirm": "确定要归档此版本吗？归档后可以恢复。",
+      "success_title": "归档成功",
+      "success_message": "可在项目归档中找到此版本。",
+      "failed": "无法归档版本，请重试。"
+    },
+    "restore": {
+      "success_title": "恢复成功",
+      "success_message": "可在项目版本中找到此版本。",
+      "failed": "无法恢复版本，请重试。"
+    },
+    "favorite": {
+      "add_loading": "正在将版本添加到收藏...",
+      "add_success": "版本已添加到收藏。",
+      "add_failed": "无法将版本添加到收藏，请重试。",
+      "remove_loading": "正在从收藏中移除版本...",
+      "remove_success": "版本已从收藏中移除。",
+      "remove_failed": "无法从收藏中移除版本，请重试。"
+    },
+    "empty_search": {
+      "no_matching": "没有匹配的版本",
+      "remove_filters": "移除筛选条件以查看所有版本",
+      "remove_search": "移除搜索条件以查看所有版本"
+    },
+    "work_items": {
+      "add_success": "工作项已成功添加到版本。",
+      "add_failed": "无法将所选工作项添加到版本，请重试。",
+      "remove": "从版本中移除"
+    },
+    "activity": {
+      "added": "将此工作项添加到了版本",
+      "added_prefix": "将",
+      "added_suffix": "添加到了版本",
+      "set": "将版本设置为",
+      "removed": "从版本中移除了工作项",
+      "removed_prefix": "将",
+      "removed_suffix": "从版本中移除",
+      "project_added": "将此项目添加到了版本",
+      "project_removed": "从版本中移除了此项目",
+      "unknown": "未知版本"
+    },
+    "webhook": {
+      "label": "版本",
+      "description": "版本已创建、更新或删除",
+      "work_item_description": "工作项已创建、更新、删除，或已添加到周期或版本"
+    },
+    "project_archive_description": "此项目及其中的工作项、周期、版本和页面将被归档。项目工作项不会出现在搜索结果中，且只有项目管理员可以恢复此项目。"
   }
 }

@@ -6,6 +6,7 @@
 
 // plane imports
 import { CloseIcon, ModuleIcon, ChevronDownIcon } from "@plane/propel/icons";
+import { useTranslation } from "@plane/i18n";
 import { Tooltip } from "@plane/propel/tooltip";
 import { cn } from "@plane/utils";
 // hooks
@@ -43,6 +44,7 @@ export function ModuleButtonContent(props: ModuleButtonContentProps) {
   // store hooks
   const { getModuleById } = useModule();
   const { isMobile } = usePlatformOS();
+  const { t } = useTranslation();
 
   if (Array.isArray(value))
     return (
@@ -54,8 +56,8 @@ export function ModuleButtonContent(props: ModuleButtonContentProps) {
               <div className="max-w-40 truncate">
                 {value.length > 0
                   ? value.length === 1
-                    ? `${getModuleById(value[0])?.name || "module"}`
-                    : `${value.length} Module${value.length === 1 ? "" : "s"}`
+                    ? `${getModuleById(value[0])?.name || t("common.module")}`
+                    : `${value.length} ${t("module.label", { count: value.length })}`
                   : placeholder}
               </div>
             )}

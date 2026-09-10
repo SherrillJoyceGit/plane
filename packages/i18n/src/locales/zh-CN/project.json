@@ -216,27 +216,27 @@
     }
   },
   "project_module": {
-    "add_module": "添加模块",
-    "update_module": "更新模块",
-    "create_module": "创建模块",
-    "archive_module": "归档模块",
-    "restore_module": "恢复模块",
-    "delete_module": "删除模块",
+    "add_module": "添加版本",
+    "update_module": "更新版本",
+    "create_module": "创建版本",
+    "archive_module": "归档版本",
+    "restore_module": "恢复版本",
+    "delete_module": "删除版本",
     "empty_state": {
       "general": {
-        "title": "将项目里程碑映射到模块，轻松跟踪汇总工作。",
-        "description": "属于逻辑层次结构父级的一组工作项形成一个模块。将其视为按项目里程碑跟踪工作的方式。它们有自己的周期和截止日期以及分析功能，帮助您了解距离里程碑的远近。",
+        "title": "用版本规划项目里程碑，轻松跟踪交付进度。",
+        "description": "将同一次交付涉及的工作项归入一个版本，并设置负责人、计划周期和截止日期。通过进度分析掌握每个版本距离发布目标还有多远。",
         "primary_button": {
-          "text": "构建您的第一个模块",
+          "text": "创建您的第一个版本",
           "comic": {
-            "title": "模块帮助按层次结构对工作进行分组。",
-            "description": "购物车模块、底盘模块和仓库模块都是这种分组的好例子。"
+            "title": "版本帮助按交付目标组织工作。",
+            "description": "例如 v0.0.2、v1.0.0 或季度发布版本，都可以独立跟踪范围、负责人和进度。"
           }
         }
       },
       "no_issues": {
-        "title": "模块中没有工作项",
-        "description": "创建或添加您想作为此模块一部分完成的工作项",
+        "title": "版本中没有工作项",
+        "description": "创建或添加您想作为此版本一部分完成的工作项",
         "primary_button": {
           "text": "创建新工作项"
         },
@@ -245,26 +245,26 @@
         }
       },
       "archived": {
-        "title": "尚无已归档的模块",
-        "description": "为了整理您的项目，归档已完成或已取消的模块。归档后可以在这里找到它们。"
+        "title": "尚无已归档的版本",
+        "description": "为了整理您的项目，归档已完成或已取消的版本。归档后可以在这里找到它们。"
       },
       "sidebar": {
-        "in_active": "此模块尚未激活。",
+        "in_active": "此版本尚未激活。",
         "invalid_date": "日期无效。请输入有效日期。"
       }
     },
     "quick_actions": {
-      "archive_module": "归档模块",
-      "archive_module_description": "只有已完成或已取消的\n模块可以归档。",
-      "delete_module": "删除模块"
+      "archive_module": "归档版本",
+      "archive_module_description": "只有已完成或已取消的\n版本可以归档。",
+      "delete_module": "删除版本"
     },
     "toast": {
       "copy": {
-        "success": "模块链接已复制到剪贴板"
+        "success": "版本链接已复制到剪贴板"
       },
       "delete": {
-        "success": "模块删除成功",
-        "error": "删除模块失败"
+        "success": "版本删除成功",
+        "error": "删除版本失败"
       }
     }
   },
@@ -314,8 +314,8 @@
         }
       },
       "module": {
-        "title": "项目未启用模块功能。",
-        "description": "模块是项目的基本构建块。从项目设置启用模块以开始使用它们。",
+        "title": "项目未启用版本功能。",
+        "description": "版本是项目的基本构建块。从项目设置启用版本以开始使用它们。",
         "primary_button": {
           "text": "管理功能"
         }

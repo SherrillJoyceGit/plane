@@ -33,6 +33,7 @@ import {
   RelatedIcon,
   WorkItemsIcon,
 } from "@plane/propel/icons";
+import { useTranslation } from "@plane/i18n";
 import { Tooltip } from "@plane/propel/tooltip";
 import type { IIssueActivity } from "@plane/types";
 import { renderFormattedDate, generateWorkItemLink, capitalizeFirstLetter } from "@plane/utils";
@@ -152,7 +153,12 @@ const getInboxUserActivityMessage = (activity: IIssueActivity, showIssue: boolea
 
 const activityDetails: {
   [key: string]: {
-    message: (activity: IIssueActivity, showIssue: boolean, workspaceSlug: string) => React.ReactNode;
+    message: (
+      activity: IIssueActivity,
+      showIssue: boolean,
+      workspaceSlug: string,
+      t: (key: string, params?: Record<string, unknown>) => string
+    ) => React.ReactNode;
     icon: React.ReactNode;
   };
 } = {
@@ -473,11 +479,18 @@ const activityDetails: {
     icon: <CycleIcon height={12} width={12} className="text-secondary" aria-hidden="true" />,
   },
   modules: {
-    message: (activity, showIssue, workspaceSlug) => {
+    message: (activity, showIssue, workspaceSlug, t) => {
       if (activity.verb === "created")
         return (
           <>
-            added {showIssue ? <IssueLink activity={activity} /> : "this work item"} to the module{" "}
+            {showIssue ? (
+              <>
+                {t("module.activity.added_prefix")} <IssueLink activity={activity} />{" "}
+                {t("module.activity.added_suffix")}{" "}
+              </>
+            ) : (
+              <>{t("module.activity.added")} </>
+            )}
             <a
               href={`/${workspaceSlug}/projects/${activity.project}/modules/${activity.new_identifier}`}
               target="_blank"
@@ -491,7 +504,7 @@ const activityDetails: {
       else if (activity.verb === "updated")
         return (
           <>
-            set the module to{" "}
+            {t("module.activity.set")}{" "}
             <a
               href={`/${workspaceSlug}/projects/${activity.project}/modules/${activity.new_identifier}`}
               target="_blank"
@@ -505,7 +518,8 @@ const activityDetails: {
       else
         return (
           <>
-            removed <IssueLink activity={activity} /> from the module{" "}
+            {t("module.activity.removed_prefix")} <IssueLink activity={activity} />{" "}
+            {t("module.activity.removed_suffix")}{" "}
             <a
               href={`/${workspaceSlug}/projects/${activity.project}/modules/${activity.old_identifier}`}
               target="_blank"
@@ -761,6 +775,7 @@ type ActivityMessageProps = {
 export function ActivityMessage({ activity, showIssue = false }: ActivityMessageProps) {
   // router params
   const { workspaceSlug } = useParams();
+  const { t } = useTranslation();
   const activityField = activity.field ?? "issue";
 
   return (
@@ -768,7 +783,8 @@ export function ActivityMessage({ activity, showIssue = false }: ActivityMessage
       {activityDetails[activityField as keyof typeof activityDetails]?.message(
         activity,
         showIssue,
-        workspaceSlug ? workspaceSlug.toString() : (activity.workspace_detail?.slug ?? "")
+        workspaceSlug ? workspaceSlug.toString() : (activity.workspace_detail?.slug ?? ""),
+        t
       )}
     </>
   );

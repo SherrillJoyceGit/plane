@@ -331,11 +331,11 @@
         "toggle_description": "在集中的时间段内规划工作。"
       },
       "modules": {
-        "title": "模块",
-        "short_title": "模块",
+        "title": "版本",
+        "short_title": "版本",
         "description": "将工作组织成具有专门负责人和受让人的子项目。",
-        "toggle_title": "启用模块",
-        "toggle_description": "项目成员将能够创建和编辑模块。"
+        "toggle_title": "启用版本",
+        "toggle_description": "项目成员将能够创建和编辑版本。"
       },
       "views": {
         "title": "视图",

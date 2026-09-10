@@ -8,6 +8,7 @@ import { useCallback } from "react";
 import { xor } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
+import { useTranslation } from "@plane/i18n";
 // types
 import type { TIssue } from "@plane/types";
 // components
@@ -25,6 +26,7 @@ export const SpreadsheetModuleColumn = observer(function SpreadsheetModuleColumn
   const { issue, disabled, onClose } = props;
   // router
   const { workspaceSlug } = useParams();
+  const { t } = useTranslation();
   // hooks
   const {
     issues: { changeModulesInIssue },
@@ -53,7 +55,7 @@ export const SpreadsheetModuleColumn = observer(function SpreadsheetModuleColumn
         value={issue?.module_ids ?? []}
         onChange={handleModule}
         disabled={disabled}
-        placeholder="Select modules"
+        placeholder={t("module.select")}
         buttonVariant="transparent-with-text"
         buttonContainerClassName="w-full relative flex items-center p-2 group-[.selected-issue-row]:bg-accent-primary/5 group-[.selected-issue-row]:hover:bg-accent-primary/10 px-page-x"
         buttonClassName="relative leading-4 h-4.5 bg-transparent hover:bg-transparent !px-0"

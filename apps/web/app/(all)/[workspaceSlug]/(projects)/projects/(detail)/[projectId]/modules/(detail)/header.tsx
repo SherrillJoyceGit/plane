@@ -17,6 +17,7 @@ import {
   EUserPermissionsLevel,
   WORK_ITEM_TRACKER_ELEMENTS,
 } from "@plane/constants";
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { ModuleIcon } from "@plane/propel/icons";
 import { Tooltip } from "@plane/propel/tooltip";
@@ -51,6 +52,7 @@ import { CommonProjectBreadcrumbs } from "@/components/breadcrumbs/common";
 import { IconButton } from "@plane/propel/icon-button";
 
 export const ModuleIssuesHeader = observer(function ModuleIssuesHeader() {
+  const { t } = useTranslation();
   // refs
   const parentRef = useRef<HTMLDivElement>(null);
   // states
@@ -139,7 +141,7 @@ export const ModuleIssuesHeader = observer(function ModuleIssuesHeader() {
               <Breadcrumbs.Item
                 component={
                   <BreadcrumbLink
-                    label="Modules"
+                    label={t("common.modules")}
                     href={`/${workspaceSlug}/projects/${projectId}/modules/`}
                     icon={<ModuleIcon className="h-4 w-4 text-tertiary" />}
                     isLast
@@ -165,9 +167,7 @@ export const ModuleIssuesHeader = observer(function ModuleIssuesHeader() {
             {workItemsCount && workItemsCount > 0 ? (
               <Tooltip
                 isMobile={isMobile}
-                tooltipContent={`There are ${workItemsCount} ${
-                  workItemsCount > 1 ? "work items" : "work item"
-                } in this module`}
+                tooltipContent={`${t("common.module")}: ${workItemsCount} ${t("work_items")}`}
                 position="bottom"
               >
                 <span className="flex flex-shrink-0 cursor-default items-center justify-center rounded-xl bg-accent-primary/20 px-2 text-center text-11 font-semibold text-accent-primary">

@@ -5,6 +5,7 @@
  */
 
 import { Mail, MessageCircle, MessageSquare } from "lucide-react";
+import { useTranslation } from "@plane/i18n";
 import { EProductSubscriptionEnum } from "@plane/types";
 // plane imports
 import { cn } from "@plane/utils";
@@ -46,12 +47,18 @@ type TPlansComparisonDetails = {
 
 type PlanePlans = {
   planDetails: Record<TPlanePlans, TPlanDetail>;
-  planHighlights: Record<TPlanePlans, string[]>;
+  planHighlights: Record<TPlanePlans, React.ReactNode[]>;
   planComparison: TPlansComparisonDetails[];
 };
 
 function ForumIcon({ className }: { className?: string }) {
   return <MessageSquare className={cn(className, "size-5 text-secondary")} />;
+}
+
+function ModuleTerm({ plural = false, lowercase = false }: { plural?: boolean; lowercase?: boolean }) {
+  const { t } = useTranslation();
+  const label = t(plural ? "common.modules" : "common.module");
+  return <>{lowercase ? label.toLowerCase() : label}</>;
 }
 
 export function ComingSoonBadge({ className }: { className?: string }) {
@@ -76,7 +83,11 @@ export const PLANS_COMPARISON_LIST: TPlansComparisonDetails[] = [
     features: [
       {
         title: "Projects",
-        description: "Add projects to house work items, cycles, and modules.",
+        description: (
+          <>
+            Add projects to house work items, cycles, and <ModuleTerm plural lowercase />.
+          </>
+        ),
         cloud: {
           free: true,
           one: true,
@@ -87,7 +98,12 @@ export const PLANS_COMPARISON_LIST: TPlansComparisonDetails[] = [
       },
       {
         title: "Work items",
-        description: "Add work via work items, set properties for tracking, and add to\ncycles or modules.",
+        description: (
+          <>
+            Add work via work items, set properties for tracking, and add to{"\n"}cycles or{" "}
+            <ModuleTerm plural lowercase />.
+          </>
+        ),
         cloud: {
           free: true,
           one: true,
@@ -119,8 +135,12 @@ export const PLANS_COMPARISON_LIST: TPlansComparisonDetails[] = [
         },
       },
       {
-        title: "Modules",
-        description: "Group replicable work in modules with their own\nleads.",
+        title: <ModuleTerm plural />,
+        description: (
+          <>
+            Group replicable work in <ModuleTerm plural lowercase /> with their own{"\n"}leads.
+          </>
+        ),
         cloud: {
           free: true,
           one: true,
@@ -160,7 +180,12 @@ export const PLANS_COMPARISON_LIST: TPlansComparisonDetails[] = [
     features: [
       {
         title: "Bulk Ops",
-        description: "Add several work items to cycles or modules, transfer\nthem, or edit their properties.",
+        description: (
+          <>
+            Add several work items to cycles or <ModuleTerm plural lowercase />, transfer{"\n"}them, or edit their
+            properties.
+          </>
+        ),
         cloud: {
           free: false,
           one: "Limited props",
@@ -259,7 +284,11 @@ export const PLANS_COMPARISON_LIST: TPlansComparisonDetails[] = [
       },
       {
         title: "Epics",
-        description: "Organize long-term work in epics that house work items,\ncycles, and modules.",
+        description: (
+          <>
+            Organize long-term work in epics that house work items,{"\n"}cycles, and <ModuleTerm plural lowercase />.
+          </>
+        ),
         cloud: {
           free: false,
           one: false,
@@ -294,8 +323,16 @@ export const PLANS_COMPARISON_LIST: TPlansComparisonDetails[] = [
         },
       },
       {
-        title: "Module Overview",
-        description: "Like Cycle Overviews, see relevant details and\nprogress charts for each module.",
+        title: (
+          <>
+            <ModuleTerm /> Overview
+          </>
+        ),
+        description: (
+          <>
+            Like Cycle Overviews, see relevant details and{"\n"}progress charts for each <ModuleTerm lowercase />.
+          </>
+        ),
         cloud: {
           free: false,
           one: false,
@@ -305,8 +342,17 @@ export const PLANS_COMPARISON_LIST: TPlansComparisonDetails[] = [
         },
       },
       {
-        title: "Auto-assignment In Modules",
-        description: "Choose assignment rules for work items in a\nmodule including Linear, Round Robin, or Capacity.",
+        title: (
+          <>
+            Auto-assignment In <ModuleTerm plural />
+          </>
+        ),
+        description: (
+          <>
+            Choose assignment rules for work items in a{"\n"}
+            <ModuleTerm lowercase /> including Linear, Round Robin, or Capacity.
+          </>
+        ),
         cloud: {
           free: false,
           one: false,
@@ -536,8 +582,12 @@ export const PLANS_COMPARISON_LIST: TPlansComparisonDetails[] = [
     features: [
       {
         title: "Progress Charts",
-        description:
-          "Track progress in cycles, modules, and overviews\nthroughout Plane without switching to dashboards\nor Analytics.",
+        description: (
+          <>
+            Track progress in cycles, <ModuleTerm plural lowercase />, and overviews{"\n"}throughout Plane without
+            switching to dashboards{"\n"}or Analytics.
+          </>
+        ),
         cloud: {
           free: false,
           one: false,
@@ -1301,7 +1351,14 @@ export const PLANE_PLANS: PlanePlans = {
     },
   },
   planHighlights: {
-    free: ["Upto 12 users", "Pages", "Unlimited projects", "Unlimited cycles and modules"],
+    free: [
+      "Upto 12 users",
+      "Pages",
+      "Unlimited projects",
+      <span key="unlimited-cycles-and-modules">
+        Unlimited cycles and <ModuleTerm plural lowercase />
+      </span>,
+    ],
     one: ["Upto 50 users", "OIDC and SAML", "Active cycles", "Limited time tracking"],
     pro: ["Unlimited users", "Custom work items + Properties", "Work item templates", "Full Time Tracking"],
     business: ["RBAC", "Project Templates", "Baselines And Deviations", "Custom Reports"],

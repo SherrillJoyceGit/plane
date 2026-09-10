@@ -8,6 +8,7 @@ import { Command } from "cmdk";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane imports
+import { useTranslation } from "@plane/i18n";
 import type { IWorkspaceSearchResults } from "@plane/types";
 // hooks
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -24,6 +25,7 @@ export const PowerKModalSearchResults = observer(function PowerKModalSearchResul
   const { closePalette, results } = props;
   // router
   const router = useAppRouter();
+  const { t } = useTranslation();
   const { projectId: routerProjectId } = useParams();
   // derived values
   const projectId = routerProjectId?.toString();
@@ -38,7 +40,7 @@ export const PowerKModalSearchResults = observer(function PowerKModalSearchResul
         if (section.length <= 0) return null;
 
         return (
-          <Command.Group key={key} heading={currentSection.title}>
+          <Command.Group key={key} heading={key === "module" ? t("common.modules") : currentSection.title}>
             {section.map((item) => {
               let value = `${key}-${item?.id}-${item.name}`;
 

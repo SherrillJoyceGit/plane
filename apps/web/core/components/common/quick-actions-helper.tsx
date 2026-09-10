@@ -7,6 +7,7 @@
 // types
 import type { ICycle, IModule, IProjectView, IWorkspaceView } from "@plane/types";
 import type { TContextMenuItem } from "@plane/ui";
+import { useTranslation } from "@plane/i18n";
 // hooks
 import { useQuickActionsFactory } from "@/components/common/quick-actions-factory";
 
@@ -90,6 +91,7 @@ export const useCycleMenuItems = (props: UseCycleMenuItemsProps): MenuResult => 
 
 export const useModuleMenuItems = (props: UseModuleMenuItemsProps): MenuResult => {
   const factory = useQuickActionsFactory();
+  const { t } = useTranslation();
   const { moduleDetails, isEditingAllowed, ...handlers } = props;
 
   const isArchived = !!moduleDetails?.archived_at;
@@ -104,7 +106,7 @@ export const useModuleMenuItems = (props: UseModuleMenuItemsProps): MenuResult =
     factory.createArchiveMenuItem(handlers.handleArchive, {
       shouldRender: isEditingAllowed && !isArchived,
       disabled: !isInArchivableGroup,
-      description: isInArchivableGroup ? undefined : "Only completed or cancelled modules can be archived",
+      description: isInArchivableGroup ? undefined : t("project_module.quick_actions.archive_module_description"),
     }),
     factory.createRestoreMenuItem(handlers.handleRestore, isEditingAllowed && isArchived),
     factory.createDeleteMenuItem(handlers.handleDelete, isEditingAllowed && !isArchived),
