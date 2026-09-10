@@ -14,7 +14,7 @@ on:
       releaseVersion:
         description: "Release Version"
         type: string
-        default: v0.0.0
+        default: tc-plane-v0.0.1
       isPrerelease:
         description: "Is Pre-release"
         type: boolean
@@ -70,9 +70,14 @@ jobs:
       build_release: ${{ steps.set_env_variables.outputs.BUILD_RELEASE }}
       build_prerelease: ${{ steps.set_env_variables.outputs.BUILD_PRERELEASE }}
       release_version: ${{ steps.set_env_variables.outputs.RELEASE_VERSION }}
+      docker_version: ${{ steps.set_env_variables.outputs.DOCKER_VERSION }}
       aio_build: ${{ steps.set_env_variables.outputs.AIO_BUILD }}
 
     steps:
+      - id: checkout_files
+        name: Checkout Files
+        uses: actions/checkout@v6
+
       - id: set_env_variables
         name: Set Environment Variables
         run: |
@@ -102,26 +107,48 @@ jobs:
           BUILD_RELEASE=false
           BUILD_PRERELEASE=false
           RELVERSION="latest"
+          DOCKER_VERSION="latest"
 
           BUILD_AIO=${{ env.AIO_BUILD }}
 
           if [ "${{ env.BUILD_TYPE }}" == "Release" ]; then
-            FLAT_RELEASE_VERSION=$(echo "${{ env.RELEASE_VERSION }}" | sed 's/[^a-zA-Z0-9.-]//g')
+            FLAT_RELEASE_VERSION="${RELEASE_VERSION}"
             echo "FLAT_RELEASE_VERSION=${FLAT_RELEASE_VERSION}" >> $GITHUB_OUTPUT
 
-            semver_regex="^v([0-9]+)\.([0-9]+)\.([0-9]+)(-[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)?$"
+            semver_regex="^tc-plane-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$"
             if [[ ! $FLAT_RELEASE_VERSION =~ $semver_regex ]]; then
               echo "Invalid Release Version Format : $FLAT_RELEASE_VERSION"
-              echo "Please provide a valid SemVer version"
-              echo "e.g. v1.2.3 or v1.2.3-alpha-1"
+              echo "Please provide a valid TC Plane SemVer version"
+              echo "e.g. tc-plane-v0.0.1 or tc-plane-v0.1.0-rc.1"
               echo "Exiting the build process"
               exit 1  # Exit with status 1 to fail the step
             fi
+
+            EXPECTED_RELEASE_VERSION="tc-plane-v$(node -p 'require("./package.json").version')"
+            if [ "$FLAT_RELEASE_VERSION" != "$EXPECTED_RELEASE_VERSION" ]; then
+              echo "Release version must match package.json: $EXPECTED_RELEASE_VERSION"
+              exit 1
+            fi
+
             BUILD_RELEASE=true
             RELVERSION=$FLAT_RELEASE_VERSION
+            DOCKER_VERSION=${FLAT_RELEASE_VERSION#tc-plane-}
 
-            if [ "${{ env.IS_PRERELEASE }}" == "true" ]; then
+            if [[ "$DOCKER_VERSION" == *-* ]]; then
+              DOCKER_CORE=${DOCKER_VERSION%%-*}
+              DOCKER_PRERELEASE=${DOCKER_VERSION#*-}
+              DOCKER_VERSION="${DOCKER_CORE}-${DOCKER_PRERELEASE//./-}"
+            fi
+
+            if [[ "$DOCKER_VERSION" == *-* ]]; then
+              if [ "${{ env.IS_PRERELEASE }}" != "true" ]; then
+                echo "Pre-release versions require the isPrerelease option"
+                exit 1
+              fi
               BUILD_PRERELEASE=true
+            elif [ "${{ env.IS_PRERELEASE }}" == "true" ]; then
+              echo "Stable versions cannot use the isPrerelease option"
+              exit 1
             fi
 
             BUILD_AIO=true
@@ -130,11 +157,8 @@ jobs:
           echo "BUILD_RELEASE=${BUILD_RELEASE}" >> $GITHUB_OUTPUT
           echo "BUILD_PRERELEASE=${BUILD_PRERELEASE}" >> $GITHUB_OUTPUT
           echo "RELEASE_VERSION=${RELVERSION}" >> $GITHUB_OUTPUT
+          echo "DOCKER_VERSION=${DOCKER_VERSION}" >> $GITHUB_OUTPUT
           echo "AIO_BUILD=${BUILD_AIO}" >> $GITHUB_OUTPUT
-
-      - id: checkout_files
-        name: Checkout Files
-        uses: actions/checkout@v6
 
   branch_build_push_admin:
     name: Build-Push Admin Docker Image
@@ -146,7 +170,7 @@ jobs:
         with:
           build-release: ${{ needs.branch_build_setup.outputs.build_release }}
           build-prerelease: ${{ needs.branch_build_setup.outputs.build_prerelease }}
-          release-version: ${{ needs.branch_build_setup.outputs.release_version }}
+          release-version: ${{ needs.branch_build_setup.outputs.docker_version }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           docker-image-owner: makeplane
@@ -168,7 +192,7 @@ jobs:
         with:
           build-release: ${{ needs.branch_build_setup.outputs.build_release }}
           build-prerelease: ${{ needs.branch_build_setup.outputs.build_prerelease }}
-          release-version: ${{ needs.branch_build_setup.outputs.release_version }}
+          release-version: ${{ needs.branch_build_setup.outputs.docker_version }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           docker-image-owner: makeplane
@@ -190,7 +214,7 @@ jobs:
         with:
           build-release: ${{ needs.branch_build_setup.outputs.build_release }}
           build-prerelease: ${{ needs.branch_build_setup.outputs.build_prerelease }}
-          release-version: ${{ needs.branch_build_setup.outputs.release_version }}
+          release-version: ${{ needs.branch_build_setup.outputs.docker_version }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           docker-image-owner: makeplane
@@ -212,7 +236,7 @@ jobs:
         with:
           build-release: ${{ needs.branch_build_setup.outputs.build_release }}
           build-prerelease: ${{ needs.branch_build_setup.outputs.build_prerelease }}
-          release-version: ${{ needs.branch_build_setup.outputs.release_version }}
+          release-version: ${{ needs.branch_build_setup.outputs.docker_version }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           docker-image-owner: makeplane
@@ -234,7 +258,7 @@ jobs:
         with:
           build-release: ${{ needs.branch_build_setup.outputs.build_release }}
           build-prerelease: ${{ needs.branch_build_setup.outputs.build_prerelease }}
-          release-version: ${{ needs.branch_build_setup.outputs.release_version }}
+          release-version: ${{ needs.branch_build_setup.outputs.docker_version }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           docker-image-owner: makeplane
@@ -256,7 +280,7 @@ jobs:
         with:
           build-release: ${{ needs.branch_build_setup.outputs.build_release }}
           build-prerelease: ${{ needs.branch_build_setup.outputs.build_prerelease }}
-          release-version: ${{ needs.branch_build_setup.outputs.release_version }}
+          release-version: ${{ needs.branch_build_setup.outputs.docker_version }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           docker-image-owner: makeplane
@@ -290,11 +314,13 @@ jobs:
           cd deployments/aio/community
 
           if [ "${{ needs.branch_build_setup.outputs.build_type }}" == "Release" ]; then
-            aio_version=${{ needs.branch_build_setup.outputs.release_version }}
+            aio_version=${{ needs.branch_build_setup.outputs.docker_version }}
+            app_version=${{ needs.branch_build_setup.outputs.release_version }}
           else
             aio_version=${{ needs.branch_build_setup.outputs.gh_branch_name }}
+            app_version=${aio_version}
           fi
-          bash ./build.sh --release $aio_version
+          bash ./build.sh --release "$aio_version" --app-version "$app_version"
           echo "AIO_BUILD_VERSION=${aio_version}" >> $GITHUB_OUTPUT
 
       - name: Upload AIO Assets
@@ -308,7 +334,7 @@ jobs:
         with:
           build-release: ${{ needs.branch_build_setup.outputs.build_release }}
           build-prerelease: ${{ needs.branch_build_setup.outputs.build_prerelease }}
-          release-version: ${{ needs.branch_build_setup.outputs.release_version }}
+          release-version: ${{ needs.branch_build_setup.outputs.docker_version }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           docker-image-owner: makeplane
@@ -342,14 +368,17 @@ jobs:
       - name: Update Assets
         run: |
           if [ "${{ needs.branch_build_setup.outputs.build_type }}" == "Release" ]; then
-            REL_VERSION=${{ needs.branch_build_setup.outputs.release_version }}
+            REL_VERSION=${{ needs.branch_build_setup.outputs.docker_version }}
+            APP_VERSION=${{ needs.branch_build_setup.outputs.release_version }}
           else
             REL_VERSION=${{ needs.branch_build_setup.outputs.gh_branch_name }}
+            APP_VERSION=${REL_VERSION}
           fi
 
           cp ./deployments/cli/community/install.sh deployments/cli/community/setup.sh
           sed -i 's/${APP_RELEASE:-stable}/${APP_RELEASE:-'${REL_VERSION}'}/g' deployments/cli/community/docker-compose.yml
-          # sed -i 's/APP_RELEASE=stable/APP_RELEASE='${REL_VERSION}'/g' deployments/cli/community/variables.env
+          sed -i 's/^APP_RELEASE=.*/APP_RELEASE='${REL_VERSION}'/' deployments/cli/community/variables.env
+          sed -i 's/^APP_VERSION=.*/APP_VERSION='${APP_VERSION}'/' deployments/cli/community/variables.env
 
       - name: Upload Assets
         uses: actions/upload-artifact@v7
@@ -379,6 +408,7 @@ jobs:
       ]
     env:
       REL_VERSION: ${{ needs.branch_build_setup.outputs.release_version }}
+      DOCKER_VERSION: ${{ needs.branch_build_setup.outputs.docker_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -386,8 +416,19 @@ jobs:
       - name: Update Assets
         run: |
           cp ./deployments/cli/community/install.sh deployments/cli/community/setup.sh
-          sed -i 's/${APP_RELEASE:-stable}/${APP_RELEASE:-'${REL_VERSION}'}/g' deployments/cli/community/docker-compose.yml
-          # sed -i 's/APP_RELEASE=stable/APP_RELEASE='${REL_VERSION}'/g' deployments/cli/community/variables.env
+          sed -i 's/${APP_RELEASE:-stable}/${APP_RELEASE:-'${DOCKER_VERSION}'}/g' deployments/cli/community/docker-compose.yml
+          sed -i 's/^APP_RELEASE=.*/APP_RELEASE='${DOCKER_VERSION}'/' deployments/cli/community/variables.env
+          sed -i 's/^APP_VERSION=.*/APP_VERSION='${REL_VERSION}'/' deployments/cli/community/variables.env
+
+      - name: Prepare Release Notes
+        run: |
+          {
+            echo "## TC Plane 发布信息"
+            echo
+            echo "- 产品版本：${REL_VERSION}"
+            echo
+            cat UPSTREAM.md
+          } > release-context.md
 
       - name: Create Release
         id: create_release
@@ -399,8 +440,9 @@ jobs:
           name: ${{ env.REL_VERSION }}
           target_commitish: ${{ github.sha }}
           draft: false
-          prerelease: ${{ env.IS_PRERELEASE }}
+          prerelease: ${{ needs.branch_build_setup.outputs.build_prerelease }}
           generate_release_notes: true
+          body_path: release-context.md
           files: |
             ${{ github.workspace }}/deployments/cli/community/setup.sh
             ${{ github.workspace }}/deployments/cli/community/restore.sh

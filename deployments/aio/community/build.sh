@@ -28,6 +28,15 @@ for arg in "$@"; do
             IMAGE_NAME="${arg#*=}"
             shift
             ;;
+        --app-version)
+            APP_VERSION="$2"
+            shift
+            shift
+            ;;
+        --app-version=*)
+            APP_VERSION="${arg#*=}"
+            shift
+            ;;
     esac
 done
 
@@ -39,10 +48,13 @@ if [ -z "$APP_RELEASE_VERSION" ]; then
     echo ""
     echo "Flags:"
     echo "  --release=<APP_RELEASE_VERSION>     required (e.g. v0.27.1)"
+    echo "  --app-version=<APP_VERSION>         optional display version (defaults to release)"
     echo ""
     echo "Example: ./build.sh --release=v0.27.1 --platform=linux/amd64"
     exit 1
 fi
+
+APP_VERSION=${APP_VERSION:-$APP_RELEASE_VERSION}
 
 # Install yq if not present
 if ! command -v yq &> /dev/null; then
@@ -103,7 +115,7 @@ build_dist_files(){
     # update the plane.env file with the APP_RELEASE_VERSION
     update_env_file $DIST_DIR/plane.env "APP_RELEASE_VERSION" "$APP_RELEASE_VERSION"
     update_env_file $DIST_DIR/plane.env "APP_RELEASE" "$APP_RELEASE_VERSION"
-    update_env_file $DIST_DIR/plane.env "APP_VERSION" "$APP_RELEASE_VERSION"
+    update_env_file $DIST_DIR/plane.env "APP_VERSION" "$APP_VERSION"
     
     update_env_file $DIST_DIR/plane.env "API_BASE_URL" "http://localhost:3004"
     update_env_file $DIST_DIR/plane.env "SITE_ADDRESS" ":80"
@@ -142,4 +154,3 @@ main(){
 }
 
 main "$@"
-
