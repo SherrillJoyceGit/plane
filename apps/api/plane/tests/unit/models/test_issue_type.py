@@ -53,7 +53,15 @@ def test_seed_migration_backfills_null_types_and_preserves_existing_types(projec
     workspace_draft = DraftIssue.objects.create(name="Workspace draft", project=None, workspace=workspace, type=None)
 
     migration = importlib.import_module("plane.db.migrations.0124_seed_default_issue_types")
-    migration.seed_default_issue_types(apps, None)
+
+    class HistoricalApps:
+        def get_model(self, app_label, model_name):
+            model = apps.get_model(app_label, model_name)
+            if model_name == "Issue":
+                return type("HistoricalIssue", (), {"_base_manager": model._base_manager})
+            return model
+
+    migration.seed_default_issue_types(HistoricalApps(), None)
     task = IssueType.objects.get(workspace=workspace, name="Task")
 
     for item in (null_issue, typed_issue, null_draft, typed_draft, workspace_draft):

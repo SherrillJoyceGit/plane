@@ -51,7 +51,7 @@ def seed_default_issue_types(apps, schema_editor):
             ProjectIssueType.objects.filter(project_id=project.id, is_default=True).exclude(
                 issue_type_id=task_type.id
             ).update(is_default=False)
-            Issue.objects.filter(project_id=project.id, type_id__isnull=True).update(type_id=task_type.id)
+            Issue._base_manager.filter(project_id=project.id, type_id__isnull=True).update(type_id=task_type.id)
             DraftIssue.objects.filter(project_id=project.id, type_id__isnull=True).update(type_id=task_type.id)
 
 
