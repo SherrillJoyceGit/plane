@@ -45,11 +45,11 @@ x-mq-env: &mq-env # RabbitMQ Settings
 x-live-env: &live-env
   API_BASE_URL: ${API_BASE_URL:-http://api:8000}
   LIVE_SERVER_SECRET_KEY: ${LIVE_SERVER_SECRET_KEY}
-  APP_VERSION: ${APP_VERSION:-tc-plane-v0.0.2}
+  APP_VERSION: ${APP_VERSION:-tc-plane-v0.0.3}
 
 x-app-env: &app-env
   WEB_URL: ${WEB_URL:-http://localhost}
-  APP_VERSION: ${APP_VERSION:-tc-plane-v0.0.2}
+  APP_VERSION: ${APP_VERSION:-tc-plane-v0.0.3}
   DEBUG: ${DEBUG:-0}
   CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
   GUNICORN_WORKERS: 1
