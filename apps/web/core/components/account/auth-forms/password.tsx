@@ -23,6 +23,7 @@ import { ForgotPasswordPopover } from "@/components/account/auth-forms/forgot-pa
 import { EAuthModes, EAuthSteps } from "@/helpers/authentication.helper";
 // services
 import { AuthService } from "@/services/auth.service";
+import { useInstance } from "@/hooks/store/use-instance";
 
 type Props = {
   email: string;
@@ -50,6 +51,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
   const { email, isSMTPConfigured, handleAuthStep, handleEmailClear, mode, nextPath } = props;
   // plane imports
   const { t } = useTranslation();
+  const { config } = useInstance();
   // ref
   const formRef = useRef<HTMLFormElement>(null);
   // states
@@ -105,11 +107,9 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
 
   const isButtonDisabled = useMemo(
     () =>
-      !isSubmitting &&
-      !!passwordFormData.password &&
-      (mode === EAuthModes.SIGN_UP ? passwordFormData.password === passwordFormData.confirm_password : true)
-        ? false
-        : true,
+      isSubmitting ||
+      !passwordFormData.password ||
+      (mode === EAuthModes.SIGN_UP && passwordFormData.password !== passwordFormData.confirm_password),
     [isSubmitting, mode, passwordFormData.confirm_password, passwordFormData.password]
   );
 
@@ -214,7 +214,6 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
               onFocus={() => setIsPasswordInputFocused(true)}
               onBlur={() => setIsPasswordInputFocused(false)}
               autoComplete="off"
-              autoFocus
             />
             <button
               type="button"
@@ -275,6 +274,18 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
                 <span className="text-13 text-danger-primary">{t("auth.common.password.errors.match")}</span>
               )}
           </div>
+        )}
+
+        {mode === EAuthModes.SIGN_UP && config?.default_workspace && !config.is_default_workspace_auto_join_enabled && (
+          <label className="flex cursor-pointer items-start gap-2 text-13 text-secondary">
+            <input
+              type="checkbox"
+              name="join_default_workspace"
+              value="1"
+              className="accent-accent-primary mt-0.5 size-4"
+            />
+            <span>Join {config.default_workspace.name}</span>
+          </label>
         )}
 
         <div className="space-y-2.5">

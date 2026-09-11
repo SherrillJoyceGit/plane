@@ -33,6 +33,12 @@ workspace_management_config_variables = [
         "category": "WORKSPACE_MANAGEMENT",
         "is_encrypted": False,
     },
+    {
+        "key": "DEFAULT_WORKSPACE_SLUG",
+        "value": os.environ.get("DEFAULT_WORKSPACE_SLUG", ""),
+        "category": "WORKSPACE_MANAGEMENT",
+        "is_encrypted": False,
+    },
 ]
 
 google_config_variables = [

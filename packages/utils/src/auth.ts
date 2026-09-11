@@ -36,7 +36,7 @@ export const getPasswordStrength = (password: string): E_PASSWORD_STRENGTH => {
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasDigit = /[0-9]/.test(password);
-  const hasSpecialChar = /[!@#$%^&*()\-_+=\[\]{}|;:'",.<>?/]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*()_+=[\]{}|;:'",.<>?/-]/.test(password);
 
   if (hasUpperCase && hasLowerCase && hasDigit && hasSpecialChar) {
     return E_PASSWORD_STRENGTH.STRENGTH_VALID;
@@ -78,7 +78,7 @@ export const getPasswordCriteria = (password: string): PasswordCriteria[] => [
   {
     key: "special",
     label: "Min 1 special character",
-    isValid: /[!@#$%^&*()\-_+=\[\]{}|;:'",.<>?/]/.test(password),
+    isValid: /[!@#$%^&*()_+=[\]{}|;:'",.<>?/-]/.test(password),
   },
 ];
 
@@ -94,6 +94,10 @@ const errorCodeMessages: {
   [EAuthErrorCodes.SIGNUP_DISABLED]: {
     title: `Sign up disabled`,
     message: () => `Sign up disabled. Please contact your administrator.`,
+  },
+  [EAuthErrorCodes.WORKSPACE_NOT_CONFIGURED]: {
+    title: `Workspace not configured`,
+    message: () => `Your administrator has not finished setting up the workspace. Please try again later.`,
   },
   [EAuthErrorCodes.INVALID_PASSWORD]: {
     title: `Invalid password`,
@@ -313,6 +317,7 @@ export const authErrorHandler = (errorCode: EAuthErrorCodes, email?: string): TA
     EAuthErrorCodes.INVALID_EMAIL,
     EAuthErrorCodes.EMAIL_REQUIRED,
     EAuthErrorCodes.SIGNUP_DISABLED,
+    EAuthErrorCodes.WORKSPACE_NOT_CONFIGURED,
     EAuthErrorCodes.INVALID_PASSWORD,
     EAuthErrorCodes.SMTP_NOT_CONFIGURED,
     EAuthErrorCodes.USER_ALREADY_EXIST,

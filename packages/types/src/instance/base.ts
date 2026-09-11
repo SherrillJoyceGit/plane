@@ -47,6 +47,8 @@ export interface IInstance {
 export interface IInstanceConfig {
   enable_signup: boolean;
   is_workspace_creation_disabled: boolean;
+  default_workspace: { name: string } | null;
+  is_default_workspace_auto_join_enabled: boolean;
   is_google_enabled: boolean;
   is_github_enabled: boolean;
   is_gitlab_enabled: boolean;

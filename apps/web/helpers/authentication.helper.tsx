@@ -46,6 +46,7 @@ export enum EAuthenticationErrorCodes {
   BOT_USER_LOGIN_FORBIDDEN = "5017",
   PASSWORD_LOGIN_DISABLED = "5018",
   USER_ACCOUNT_DEACTIVATED = "5019",
+  WORKSPACE_NOT_CONFIGURED = "5022",
   // Password strength
   INVALID_PASSWORD = "5020",
   PASSWORD_TOO_WEAK = "5021",
@@ -141,6 +142,10 @@ const errorCodeMessages: {
   [EAuthenticationErrorCodes.USER_ACCOUNT_DEACTIVATED]: {
     title: `User account deactivated`,
     message: () => `User account deactivated. Please contact ${SUPPORT_EMAIL ? SUPPORT_EMAIL : "administrator"}.`,
+  },
+  [EAuthenticationErrorCodes.WORKSPACE_NOT_CONFIGURED]: {
+    title: `Workspace not configured`,
+    message: () => `Your administrator has not finished setting up the workspace. Please try again later.`,
   },
   [EAuthenticationErrorCodes.BOT_USER_LOGIN_FORBIDDEN]: {
     title: `Sign in not allowed`,
@@ -387,6 +392,7 @@ export const authErrorHandler = (errorCode: EAuthenticationErrorCodes, email?: s
     EAuthenticationErrorCodes.PASSWORD_LOGIN_DISABLED,
     EAuthenticationErrorCodes.BOT_USER_LOGIN_FORBIDDEN,
     EAuthenticationErrorCodes.USER_ACCOUNT_DEACTIVATED,
+    EAuthenticationErrorCodes.WORKSPACE_NOT_CONFIGURED,
     EAuthenticationErrorCodes.INVALID_PASSWORD,
     EAuthenticationErrorCodes.SMTP_NOT_CONFIGURED,
     EAuthenticationErrorCodes.USER_ALREADY_EXIST,

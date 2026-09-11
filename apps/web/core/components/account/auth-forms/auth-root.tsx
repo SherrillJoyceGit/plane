@@ -47,7 +47,7 @@ export const AuthRoot = observer(function AuthRoot(props: TAuthRoot) {
   const [email, setEmail] = useState(emailParam ? emailParam.toString() : "");
   const [errorInfo, setErrorInfo] = useState<TAuthErrorInfo | undefined>(undefined);
   // store hooks
-  const { config } = useInstance();
+  const { config, instance } = useInstance();
   // derived values
   const oAuthActionText = authMode === EAuthModes.SIGN_UP ? "Sign up" : "Sign in";
   const { isOAuthEnabled, oAuthOptions } = useOAuthConfig(oAuthActionText);
@@ -113,6 +113,21 @@ export const AuthRoot = observer(function AuthRoot(props: TAuthRoot) {
     );
   }
 
+  if (
+    currentAuthMode === EAuthModes.SIGN_UP &&
+    config?.is_workspace_creation_disabled &&
+    instance?.workspaces_exist === false
+  ) {
+    return (
+      <AuthContainer>
+        <AuthHeaderBase
+          header="Workspace not configured"
+          subHeader="Your administrator has not finished setting up the workspace. Please try again later."
+        />
+      </AuthContainer>
+    );
+  }
+
   return (
     <AuthContainer>
       {errorInfo && errorInfo?.type === EErrorAlertType.BANNER_ALERT && (
@@ -137,10 +152,10 @@ export const AuthRoot = observer(function AuthRoot(props: TAuthRoot) {
           authStep={authStep}
           authMode={authMode}
           email={email}
-          setEmail={(email) => setEmail(email)}
-          setAuthMode={(authMode) => setAuthMode(authMode)}
-          setAuthStep={(authStep) => setAuthStep(authStep)}
-          setErrorInfo={(errorInfo) => setErrorInfo(errorInfo)}
+          setEmail={setEmail}
+          setAuthMode={setAuthMode}
+          setAuthStep={setAuthStep}
+          setErrorInfo={setErrorInfo}
           currentAuthMode={currentAuthMode}
         />
       )}

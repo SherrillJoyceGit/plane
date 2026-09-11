@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+# Python imports
+import os
+
 # Django imports
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -15,7 +18,8 @@ from plane.license.models import Instance
 from plane.authentication.utils.host import base_host
 from plane.authentication.utils.redirection_path import get_redirection_path
 from plane.authentication.utils.user_auth_workflow import post_user_auth_workflow
-from plane.db.models import User
+from plane.db.models import User, Workspace
+from plane.license.utils.instance_value import get_configuration_value
 from plane.authentication.adapter.error import (
     AuthenticationException,
     AUTHENTICATION_ERROR_CODES,
@@ -148,6 +152,21 @@ class SignUpAuthEndpoint(View):
                 base_url=base_host(request=request, is_app=True),
                 next_path=next_path,
                 params=params,
+            )
+            return HttpResponseRedirect(url)
+
+        (DISABLE_WORKSPACE_CREATION,) = get_configuration_value(
+            [{"key": "DISABLE_WORKSPACE_CREATION", "default": os.environ.get("DISABLE_WORKSPACE_CREATION", "0")}]
+        )
+        if DISABLE_WORKSPACE_CREATION == "1" and not Workspace.objects.exists():
+            exc = AuthenticationException(
+                error_code=AUTHENTICATION_ERROR_CODES["WORKSPACE_NOT_CONFIGURED"],
+                error_message="WORKSPACE_NOT_CONFIGURED",
+            )
+            url = get_safe_redirect_url(
+                base_url=base_host(request=request, is_app=True),
+                next_path=next_path,
+                params=exc.get_error_dict(),
             )
             return HttpResponseRedirect(url)
 

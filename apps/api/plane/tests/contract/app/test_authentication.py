@@ -15,6 +15,7 @@ from unittest.mock import patch
 
 from plane.authentication.provider.credentials.magic_code import MagicCodeProvider
 from plane.authentication.rate_limit import AuthenticationThrottle
+from plane.authentication.adapter.error import AUTHENTICATION_ERROR_CODES
 from plane.db.models import User
 from plane.settings.redis import redis_instance
 from plane.license.models import Instance
@@ -72,6 +73,21 @@ def django_client():
     """Return a Django test client with User-Agent header for handling redirects"""
     client = Client(HTTP_USER_AGENT="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1")
     return client
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+def test_password_signup_is_blocked_before_workspace_setup(django_client, setup_instance):
+    with patch("plane.authentication.views.app.email.get_configuration_value", return_value=("1",)):
+        response = django_client.post(
+            reverse("sign-up"),
+            {"email": "blocked@plane.so", "password": "A-strong-password-123!"},
+            follow=False,
+        )
+
+    assert response.status_code == 302
+    assert f"error_code={AUTHENTICATION_ERROR_CODES['WORKSPACE_NOT_CONFIGURED']}" in response.url
+    assert not User.objects.filter(email="blocked@plane.so").exists()
 
 
 @pytest.mark.contract

@@ -176,6 +176,10 @@ update_env_file(){
     update_env_value "LIVE_SERVER_SECRET_KEY" "$LIVE_SERVER_SECRET_KEY"
 
     update_env_value "API_KEY_RATE_LIMIT" "${API_KEY_RATE_LIMIT:-60/minute}"
+    update_env_value "ENABLE_EMAIL_PASSWORD" "${ENABLE_EMAIL_PASSWORD:-1}"
+    update_env_value "ENABLE_MAGIC_LINK_LOGIN" "${ENABLE_MAGIC_LINK_LOGIN:-0}"
+    update_env_value "DISABLE_WORKSPACE_CREATION" "${DISABLE_WORKSPACE_CREATION:-1}"
+    update_env_value "DEFAULT_WORKSPACE_SLUG" "${DEFAULT_WORKSPACE_SLUG:-}"
 
     echo "✅ Environment file updated"
     echo ""

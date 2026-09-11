@@ -58,6 +58,7 @@ class InstanceEndpoint(BaseAPIView):
             EMAIL_HOST,
             ENABLE_MAGIC_LINK_LOGIN,
             ENABLE_EMAIL_PASSWORD,
+            DEFAULT_WORKSPACE_SLUG,
             SLACK_CLIENT_ID,
             POSTHOG_API_KEY,
             POSTHOG_HOST,
@@ -103,6 +104,10 @@ class InstanceEndpoint(BaseAPIView):
                     "default": os.environ.get("ENABLE_EMAIL_PASSWORD", "1"),
                 },
                 {
+                    "key": "DEFAULT_WORKSPACE_SLUG",
+                    "default": os.environ.get("DEFAULT_WORKSPACE_SLUG", ""),
+                },
+                {
                     "key": "SLACK_CLIENT_ID",
                     "default": os.environ.get("SLACK_CLIENT_ID", None),
                 },
@@ -135,6 +140,16 @@ class InstanceEndpoint(BaseAPIView):
         data["is_gitea_enabled"] = IS_GITEA_ENABLED == "1"
         data["is_magic_login_enabled"] = ENABLE_MAGIC_LINK_LOGIN == "1"
         data["is_email_password_enabled"] = ENABLE_EMAIL_PASSWORD == "1"
+
+        configured_workspace_slug = str(DEFAULT_WORKSPACE_SLUG).strip()
+        if configured_workspace_slug:
+            default_workspace = Workspace.objects.filter(slug=configured_workspace_slug).values("name").first()
+        elif Workspace.objects.count() == 1:
+            default_workspace = Workspace.objects.values("name").first()
+        else:
+            default_workspace = None
+        data["default_workspace"] = default_workspace
+        data["is_default_workspace_auto_join_enabled"] = bool(configured_workspace_slug and default_workspace)
 
         # Github app name
         data["github_app_name"] = str(GITHUB_APP_NAME)
