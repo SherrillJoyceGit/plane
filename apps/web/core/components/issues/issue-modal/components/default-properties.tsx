@@ -20,6 +20,7 @@ import { getDate, renderFormattedPayloadDate, getTabIndex } from "@plane/utils";
 import { CycleDropdown } from "@/components/dropdowns/cycle";
 import { DateDropdown } from "@/components/dropdowns/date";
 import { EstimateDropdown } from "@/components/dropdowns/estimate";
+import { IssueTypeDropdown } from "@/components/dropdowns/issue-type";
 import { MemberDropdown } from "@/components/dropdowns/member/dropdown";
 import { ModuleDropdown } from "@/components/dropdowns/module/dropdown";
 import { PriorityDropdown } from "@/components/dropdowns/priority";
@@ -85,6 +86,23 @@ export const IssueDefaultProperties = observer(function IssueDefaultProperties(p
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <Controller
+        control={control}
+        name="type_id"
+        render={({ field: { value, onChange } }) => (
+          <div className="h-7">
+            <IssueTypeDropdown
+              value={value}
+              onChange={(typeId) => {
+                onChange(typeId);
+                handleFormChange();
+              }}
+              projectId={projectId}
+              tabIndex={getIndex("type_id")}
+            />
+          </div>
+        )}
+      />
       <Controller
         control={control}
         name="state_id"

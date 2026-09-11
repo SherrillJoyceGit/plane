@@ -7,8 +7,8 @@
 import { enableStaticRendering } from "mobx-react";
 // plane imports
 import { FALLBACK_LANGUAGE, setLanguage } from "@plane/i18n";
-import type { IWorkItemFilterStore } from "@plane/shared-state";
-import { WorkItemFilterStore } from "@plane/shared-state";
+import type { IIssueTypeStore, IWorkItemFilterStore } from "@plane/shared-state";
+import { IssueTypeStore, WorkItemFilterStore } from "@plane/shared-state";
 // plane web store
 import type { IBaseAnalyticsStore as IAnalyticsStore } from "@/store/analytics.store";
 import { BaseAnalyticsStore as AnalyticsStore } from "@/store/analytics.store";
@@ -19,6 +19,7 @@ import { StateStore } from "@/store/state.store";
 import type { ICommandPaletteStore } from "@/store/base-command-palette.store";
 import { CommandPaletteStore } from "@/store/base-command-palette.store";
 import { WorkspaceRootStore } from "@/store/workspace";
+import { IssueTypeService } from "@/services/issue/issue_type.service";
 import type { ITimelineStore } from "./timeline/timeline.store";
 import { TimeLineStore } from "./timeline/timeline.store";
 // stores
@@ -101,6 +102,7 @@ export class CoreRootStore {
   stickyStore: IStickyStore;
   editorAssetStore: IEditorAssetStore;
   workItemFilters: IWorkItemFilterStore;
+  issueType: IIssueTypeStore;
   powerK: IPowerKStore;
   timelineStore: ITimelineStore;
 
@@ -133,6 +135,10 @@ export class CoreRootStore {
     this.editorAssetStore = new EditorAssetStore();
     this.analytics = new AnalyticsStore();
     this.workItemFilters = new WorkItemFilterStore();
+    const issueTypeService = new IssueTypeService();
+    this.issueType = new IssueTypeStore((workspaceSlug, projectId) =>
+      issueTypeService.getIssueTypes(workspaceSlug, projectId)
+    );
     this.powerK = new PowerKStore();
     this.timelineStore = new TimeLineStore(this);
   }
@@ -167,6 +173,10 @@ export class CoreRootStore {
     this.stickyStore = new StickyStore();
     this.editorAssetStore = new EditorAssetStore();
     this.workItemFilters = new WorkItemFilterStore();
+    const issueTypeService = new IssueTypeService();
+    this.issueType = new IssueTypeStore((workspaceSlug, projectId) =>
+      issueTypeService.getIssueTypes(workspaceSlug, projectId)
+    );
     this.powerK = new PowerKStore();
     this.timelineStore = new TimeLineStore(this);
   }

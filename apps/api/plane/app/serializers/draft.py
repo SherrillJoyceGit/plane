@@ -22,6 +22,8 @@ from plane.db.models import (
     DraftIssueModule,
     ProjectMember,
     EstimatePoint,
+    IssueType,
+    ProjectIssueType,
 )
 from plane.utils.content_validator import (
     validate_html_content,
@@ -37,6 +39,9 @@ class DraftIssueCreateSerializer(BaseSerializer):
     )
     parent_id = serializers.PrimaryKeyRelatedField(
         source="parent", queryset=Issue.objects.all(), required=False, allow_null=True
+    )
+    type_id = serializers.PrimaryKeyRelatedField(
+        source="type", queryset=IssueType.objects.all(), required=False, allow_null=True
     )
     label_ids = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(queryset=Label.objects.all()),
@@ -54,6 +59,7 @@ class DraftIssueCreateSerializer(BaseSerializer):
         fields = "__all__"
         read_only_fields = [
             "workspace",
+            "type",
             "created_by",
             "updated_by",
             "created_at",
@@ -69,6 +75,19 @@ class DraftIssueCreateSerializer(BaseSerializer):
         return data
 
     def validate(self, attrs):
+        project_id = self.context.get("project_id")
+        if project_id:
+            if "type" in attrs and attrs["type"] is not None:
+                if not ProjectIssueType.is_valid_issue_type(project_id, attrs["type"].id):
+                    raise serializers.ValidationError({"type_id": "Type is not valid for this project"})
+            elif "type" in attrs or self.instance is None:
+                issue_type = ProjectIssueType.get_default_issue_type(project_id)
+                if issue_type is None:
+                    raise serializers.ValidationError({"type_id": "Default type is not configured for this project"})
+                attrs["type"] = issue_type
+        elif "type" in attrs and attrs["type"] is not None:
+            raise serializers.ValidationError({"type_id": "Project is required to set a type"})
+
         if (
             attrs.get("start_date", None) is not None
             and attrs.get("target_date", None) is not None

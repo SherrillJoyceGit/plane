@@ -128,7 +128,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
   const {
     issue: { getIssueById },
   } = useIssueDetail();
-  const { fetchCycles } = useProjectIssueProperties();
+  const { fetchCycles, fetchIssueTypes } = useProjectIssueProperties();
   const { getStateById } = useProjectState();
 
   // form info
@@ -158,7 +158,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
 
   const { getIndex } = getTabIndex(ETabIndices.ISSUE_FORM, isMobile);
 
-  //reset few fields on projectId change
+  // reset project-scoped fields when projectId changes
   useEffect(() => {
     if (isDirty) {
       if (workItemTemplateId) {
@@ -183,16 +183,14 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...dataResetProperties]);
 
-  // Update the issue type id when the project id changes
+  // Fetch and select the project's default issue type when the project changes.
   useEffect(() => {
-    const issueTypeId = watch("type_id");
-
-    // if issue type id is present or project not available, return
-    if (issueTypeId || !projectId) return;
-
-    // get issue type id on project change
-    const issueTypeIdOnProjectChange = getIssueTypeIdOnProjectChange(projectId);
-    if (issueTypeIdOnProjectChange) setValue("type_id", issueTypeIdOnProjectChange, { shouldValidate: true });
+    if (!projectId || !workspaceSlug) return;
+    void fetchIssueTypes(workspaceSlug.toString(), projectId).then(() => {
+      const issueTypeId = getIssueTypeIdOnProjectChange(projectId);
+      if (issueTypeId && (!data?.id || projectId !== data.project_id))
+        setValue("type_id", issueTypeId, { shouldValidate: true });
+    });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, projectId]);

@@ -8,6 +8,7 @@ export const ISSUE_FORM_TAB_INDICES = [
   "name",
   "description_html",
   "feeling_lucky",
+  "type_id",
   "state_id",
   "priority",
   "assignee_ids",
@@ -29,6 +30,7 @@ export const ISSUE_FORM_TAB_INDICES = [
 export const INTAKE_ISSUE_CREATE_FORM_TAB_INDICES = [
   "name",
   "description_html",
+  "type_id",
   "state_id",
   "priority",
   "assignee_ids",

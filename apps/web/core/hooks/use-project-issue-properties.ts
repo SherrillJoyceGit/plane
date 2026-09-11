@@ -10,6 +10,7 @@ import { useLabel } from "./store/use-label";
 import { useMember } from "./store/use-member";
 import { useModule } from "./store/use-module";
 import { useProjectState } from "./store/use-project-state";
+import { useIssueType } from "./store/use-issue-type";
 
 export const useProjectIssueProperties = () => {
   const { fetchProjectStates } = useProjectState();
@@ -20,6 +21,7 @@ export const useProjectIssueProperties = () => {
   const { fetchAllCycles: fetchProjectAllCycles } = useCycle();
   const { fetchModules: fetchProjectAllModules } = useModule();
   const { getProjectEstimates } = useProjectEstimates();
+  const { fetchProjectIssueTypes } = useIssueType();
 
   // fetching project states
   const fetchStates = async (
@@ -28,6 +30,14 @@ export const useProjectIssueProperties = () => {
   ) => {
     if (workspaceSlug && projectId) {
       await fetchProjectStates(workspaceSlug.toString(), projectId.toString());
+    }
+  };
+  const fetchIssueTypes = async (
+    workspaceSlug: string | string[] | undefined,
+    projectId: string | string[] | undefined
+  ) => {
+    if (workspaceSlug && projectId) {
+      await fetchProjectIssueTypes(workspaceSlug.toString(), projectId.toString());
     }
   };
   // fetching project members
@@ -80,6 +90,7 @@ export const useProjectIssueProperties = () => {
   const fetchAll = async (workspaceSlug: string | string[] | undefined, projectId: string | string[] | undefined) => {
     if (workspaceSlug && projectId) {
       await fetchStates(workspaceSlug, projectId);
+      await fetchIssueTypes(workspaceSlug, projectId);
       await fetchMembers(workspaceSlug, projectId);
       await fetchLabels(workspaceSlug, projectId);
       await fetchCycles(workspaceSlug, projectId);
@@ -91,6 +102,7 @@ export const useProjectIssueProperties = () => {
   return {
     fetchAll,
     fetchStates,
+    fetchIssueTypes,
     fetchMembers,
     fetchLabels,
     fetchCycles,

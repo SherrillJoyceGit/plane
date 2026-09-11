@@ -20,6 +20,7 @@ import {
   PROJECT_MEMBERS,
   PROJECT_MEMBER_PREFERENCES,
   PROJECT_STATES,
+  PROJECT_ISSUE_TYPES,
   PROJECT_ESTIMATES,
   PROJECT_ALL_CYCLES,
   PROJECT_MODULES,
@@ -34,6 +35,7 @@ import { useMember } from "@/hooks/store/use-member";
 import { useModule } from "@/hooks/store/use-module";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
+import { useIssueType } from "@/hooks/store/use-issue-type";
 import { useProjectView } from "@/hooks/store/use-project-view";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
@@ -61,6 +63,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
     project: { fetchProjectMembers, fetchProjectUserProperties },
   } = useMember();
   const { fetchProjectStates, fetchProjectIntakeState } = useProjectState();
+  const { fetchProjectIssueTypes } = useIssueType();
   const { data: currentUserData } = useUser();
   const { fetchProjectLabels } = useLabel();
   const { getProjectEstimates } = useProjectEstimates();
@@ -104,6 +107,10 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   });
   // fetching project states
   useSWR(PROJECT_STATES(projectId, currentProjectRole), () => fetchProjectStates(workspaceSlug, projectId), {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+  });
+  useSWR(PROJECT_ISSUE_TYPES(projectId, currentProjectRole), () => fetchProjectIssueTypes(workspaceSlug, projectId), {
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });

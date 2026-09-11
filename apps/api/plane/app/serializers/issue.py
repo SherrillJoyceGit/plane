@@ -42,6 +42,8 @@ from plane.db.models import (
     IssueDescriptionVersion,
     ProjectMember,
     EstimatePoint,
+    IssueType,
+    ProjectIssueType,
 )
 from plane.utils.content_validator import (
     validate_html_content,
@@ -87,6 +89,9 @@ class IssueCreateSerializer(BaseSerializer):
     parent_id = serializers.PrimaryKeyRelatedField(
         source="parent", queryset=Issue.objects.all(), required=False, allow_null=True
     )
+    type_id = serializers.PrimaryKeyRelatedField(
+        source="type", queryset=IssueType.objects.all(), required=False, allow_null=True
+    )
     label_ids = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(queryset=Label.objects.all()),
         write_only=True,
@@ -106,6 +111,7 @@ class IssueCreateSerializer(BaseSerializer):
         read_only_fields = [
             "workspace",
             "project",
+            "type",
             "created_by",
             "updated_by",
             "created_at",
@@ -124,6 +130,16 @@ class IssueCreateSerializer(BaseSerializer):
     def validate(self, attrs):
         allow_triage = self.context.get("allow_triage_state", False)
         state_manager = State.triage_objects if allow_triage else State.objects
+        project_id = self.context.get("project_id")
+
+        if "type" in attrs and attrs["type"] is not None:
+            if not ProjectIssueType.is_valid_issue_type(project_id, attrs["type"].id):
+                raise serializers.ValidationError({"type_id": "Type is not valid for this project"})
+        elif "type" in attrs or self.instance is None:
+            issue_type = ProjectIssueType.get_default_issue_type(project_id)
+            if issue_type is None:
+                raise serializers.ValidationError({"type_id": "Default type is not configured for this project"})
+            attrs["type"] = issue_type
 
         if (
             attrs.get("start_date", None) is not None
@@ -796,6 +812,7 @@ class IssueSerializer(DynamicBaseSerializer):
             "sequence_id",
             "project_id",
             "parent_id",
+            "type_id",
             "cycle_id",
             "module_ids",
             "label_ids",
@@ -853,6 +870,7 @@ class IssueListDetailSerializer(serializers.Serializer):
             "sequence_id": instance.sequence_id,
             "project_id": instance.project_id,
             "parent_id": instance.parent_id,
+            "type_id": instance.type_id,
             "created_at": instance.created_at,
             "updated_at": instance.updated_at,
             "created_by": instance.created_by_id,

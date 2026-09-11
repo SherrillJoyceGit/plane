@@ -16,7 +16,6 @@ import { ControlLink, CustomMenu } from "@plane/ui";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // helpers
 import { useSubIssueOperations } from "@/components/issues/issue-detail-widgets/sub-issues/helper";
-import { WithDisplayPropertiesHOC } from "@/components/issues/issue-layouts/properties/with-display-properties-HOC";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
@@ -88,7 +87,7 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
   const displayProperties = subIssueFilters?.displayProperties ?? {};
 
   //
-  const handleIssuePeekOverview = (issue: TIssue) => handleRedirection(workspaceSlug, issue, isMobile);
+  const handleIssuePeekOverview = (issueToOpen: TIssue) => handleRedirection(workspaceSlug, issueToOpen, isMobile);
 
   if (!issue) return <></>;
 
@@ -125,6 +124,7 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
                       <Loader width={14} strokeWidth={2} className="animate-spin" />
                     </div>
                   ) : (
+                    // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
                     <div
                       className="flex h-full w-full cursor-pointer items-center justify-center text-placeholder hover:text-tertiary"
                       onClick={async (e) => {
@@ -151,7 +151,7 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
             </div>
 
             <div className="flex w-full cursor-pointer items-center gap-3 truncate">
-              <WithDisplayPropertiesHOC displayProperties={displayProperties || {}} displayPropertyKey="key">
+              {(displayProperties?.key || displayProperties?.issue_type) && (
                 <div className="flex-shrink-0">
                   {projectDetail && (
                     <IssueIdentifier
@@ -161,15 +161,17 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
                       issueSequenceId={issue.sequence_id}
                       size="xs"
                       variant="secondary"
+                      displayProperties={displayProperties}
                     />
                   )}
                 </div>
-              </WithDisplayPropertiesHOC>
+              )}
               <Tooltip tooltipContent={issue.name} isMobile={isMobile}>
                 <span className="w-0 flex-1 truncate text-13 text-primary">{issue.name}</span>
               </Tooltip>
             </div>
 
+            {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
             <div
               className="flex-shrink-0 text-13"
               onClick={(e) => {

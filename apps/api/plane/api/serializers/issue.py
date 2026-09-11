@@ -14,6 +14,7 @@ from rest_framework import serializers
 from plane.db.models import (
     Issue,
     IssueType,
+    ProjectIssueType,
     IssueActivity,
     IssueAssignee,
     FileAsset,
@@ -69,10 +70,20 @@ class IssueSerializer(BaseSerializer):
 
     class Meta:
         model = Issue
-        read_only_fields = ["id", "workspace", "project", "updated_by", "updated_at", "completed_at"]
+        read_only_fields = ["id", "workspace", "project", "type", "updated_by", "updated_at", "completed_at"]
         exclude = ["description_json", "description_stripped"]
 
     def validate(self, data):
+        project_id = self.context.get("project_id")
+        if "type" in data and data["type"] is not None:
+            if not ProjectIssueType.is_valid_issue_type(project_id, data["type"].id):
+                raise serializers.ValidationError({"type_id": "Type is not valid for this project"})
+        elif "type" in data or self.instance is None:
+            issue_type = ProjectIssueType.get_default_issue_type(project_id)
+            if issue_type is None:
+                raise serializers.ValidationError({"type_id": "Default type is not configured for this project"})
+            data["type"] = issue_type
+
         if (
             data.get("start_date", None) is not None
             and data.get("target_date", None) is not None
@@ -157,11 +168,6 @@ class IssueSerializer(BaseSerializer):
         default_assignee_id = self.context["default_assignee_id"]
 
         issue_type = validated_data.pop("type", None)
-
-        if not issue_type:
-            # Get default issue type
-            issue_type = IssueType.objects.filter(project_issue_types__project_id=project_id, is_default=True).first()
-            issue_type = issue_type
 
         issue = Issue.objects.create(**validated_data, project_id=project_id, type=issue_type)
 

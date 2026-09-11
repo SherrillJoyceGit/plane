@@ -213,6 +213,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
   useOutsideClickDetector(menuActionRef, () => setIsMenuActive(false));
 
   const customActionButton = (
+    // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
     <div
       ref={menuActionRef}
       className={`flex h-full w-full cursor-pointer items-center rounded-sm p-1 text-placeholder hover:bg-layer-1 ${
@@ -282,8 +283,13 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
             )}
           >
             {/* Identifier section - conditionally rendered */}
-            {displayProperties?.key && (
-              <div className="flex h-full min-w-24 flex-shrink-0 items-center">
+            {(displayProperties?.key || displayProperties?.issue_type) && (
+              <div
+                className={cn("flex h-full flex-shrink-0 items-center", {
+                  "min-w-24": displayProperties.key,
+                  "min-w-6": !displayProperties.key,
+                })}
+              >
                 <div className="relative flex cursor-pointer items-center text-11 hover:text-primary">
                   {issueDetail.project_id && (
                     <IssueIdentifier
@@ -301,8 +307,8 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
             {/* Workitem section */}
             <div
               className={cn("flex flex-grow items-center gap-0.5 py-2", {
-                "min-w-[360px]": !displayProperties?.key,
-                "min-w-60": displayProperties?.key,
+                "min-w-[360px]": !displayProperties?.key && !displayProperties?.issue_type,
+                "min-w-60": displayProperties?.key || displayProperties?.issue_type,
               })}
             >
               {/* select checkbox */}
@@ -368,6 +374,7 @@ const IssueRowDetails = observer(function IssueRowDetails(props: IssueRowDetails
                     </Tooltip>
                   </div>
                 </div>
+                {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
                 <div
                   className={`opacity-0 transition-opacity group-hover:opacity-100 ${isMenuActive ? "!opacity-100" : ""}`}
                   onClick={(e) => e.stopPropagation()}
