@@ -1,8 +1,4 @@
-# 首次初始化：./setup.sh
-# 启动后端：docker compose -f docker-compose-local.yml -f docker-compose-tc-local.yml up --build -d
-# 启动前端：pnpm turbo run dev --filter=web --filter=admin -- --host ${TC_PLANE_LAN_IP:-10.1.109.63}
-# 查看日志：docker compose -f docker-compose-local.yml -f docker-compose-tc-local.yml logs -f
-# 停止环境：docker compose -f docker-compose-local.yml -f docker-compose-tc-local.yml down
+# 本机 development 的启动、launchd 前端托管和安全重载流程见 docs/local-development.md。
 # 外置数据保留在 ${TC_PLANE_DATA_ROOT:-/Volumes/MacExt/docker-data/tc-plane-test}，不要使用 down -v。
 name: tc-plane-test
 
