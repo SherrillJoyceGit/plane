@@ -112,7 +112,7 @@ docker compose -f docker-compose-local.yml -f docker-compose-tc-local.yml ps
 2. 在 [Admin Authentication](http://10.1.109.63:3001/god-mode/authentication) 仅开启邮箱密码注册，关闭 Magic Link 和 OAuth。
 3. 使用无痕窗口和新邮箱访问 [注册页](http://10.1.109.63:3000/sign-up)。
 4. 未配置 `DEFAULT_WORKSPACE_SLUG` 且只有一个 workspace 时，应显示主动加入复选框；存在多个 workspace 时不显示，也不隐式选择。
-5. 配置有效的 `DEFAULT_WORKSPACE_SLUG` 后，复选框应隐藏，新账号应以 Member 身份自动加入目标 workspace。
+5. 在 Admin Workspace 的 “Default workspace for new users” 中选择目标 workspace 后，复选框应隐藏，新账号应以 Member 身份自动加入目标 workspace；选择 “No default workspace” 可清除配置。
 6. 普通用户不应看到创建入口；直接访问 [创建 Workspace](http://10.1.109.63:3000/create-workspace) 应提示创建已禁用，创建 API 应返回 `403`。
 7. 邀请注册应保留邀请角色，不被默认 Member 角色覆盖。
 8. 零 workspace 场景只在隔离空数据库验证，不通过删除当前实例数据来模拟。

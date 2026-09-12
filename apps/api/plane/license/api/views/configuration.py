@@ -21,6 +21,7 @@ from rest_framework.response import Response
 
 # Module imports
 from .base import BaseAPIView
+from plane.db.models import Workspace
 from plane.license.api.permissions import InstanceAdminPermission
 from plane.license.models import InstanceConfiguration
 from plane.license.api.serializers import InstanceConfigurationSerializer
@@ -41,6 +42,14 @@ class InstanceConfigurationEndpoint(BaseAPIView):
     @invalidate_cache(path="/api/instances/configurations/", user=False)
     @invalidate_cache(path="/api/instances/", user=False)
     def patch(self, request):
+        if "DEFAULT_WORKSPACE_SLUG" in request.data:
+            default_workspace_slug = str(request.data.get("DEFAULT_WORKSPACE_SLUG") or "").strip()
+            if default_workspace_slug and not Workspace.objects.filter(slug=default_workspace_slug).exists():
+                return Response(
+                    {"error": "Default workspace does not exist"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         configurations = InstanceConfiguration.objects.filter(key__in=request.data.keys())
 
         bulk_configurations = []

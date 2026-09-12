@@ -13,7 +13,7 @@ import { Loader as LoaderIcon } from "lucide-react";
 import { Button, getButtonStyling } from "@plane/propel/button";
 import { setPromiseToast } from "@plane/propel/toast";
 import type { TInstanceConfigurationKeys } from "@plane/types";
-import { Loader, ToggleSwitch } from "@plane/ui";
+import { CustomSelect, Loader, ToggleSwitch } from "@plane/ui";
 import { cn } from "@plane/utils";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
@@ -34,9 +34,22 @@ const WorkspaceManagementPage = observer(function WorkspaceManagementPage(_props
     paginationInfo,
     fetchWorkspaces,
     fetchNextWorkspaces,
+    getWorkspaceById,
   } = useWorkspace();
   // derived values
   const disableWorkspaceCreation = formattedConfig?.DISABLE_WORKSPACE_CREATION ?? "";
+  const defaultWorkspaceSlug = formattedConfig?.DEFAULT_WORKSPACE_SLUG ?? "";
+  const workspaceOptions = workspaceIds.flatMap((workspaceId) => {
+    const workspace = getWorkspaceById(workspaceId);
+    return workspace ? [workspace] : [];
+  });
+  const defaultWorkspace = workspaceOptions.find((workspace) => workspace.slug === defaultWorkspaceSlug);
+  const defaultWorkspaceLabel = defaultWorkspace
+    ? `${defaultWorkspace.name} [${defaultWorkspace.slug}]`
+    : defaultWorkspaceSlug
+      ? `Unavailable workspace [${defaultWorkspaceSlug}]`
+      : "No default workspace";
+  const hasMultipleWorkspaces = (paginationInfo?.total_results ?? workspaceIds.length) > 1;
   const hasNextPage = paginationInfo?.next_page_results && paginationInfo?.next_cursor !== undefined;
 
   // fetch data
@@ -64,14 +77,13 @@ const WorkspaceManagementPage = observer(function WorkspaceManagementPage(_props
       },
     });
 
-    await updateConfigPromise
-      .then(() => {
-        setIsSubmitting(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setIsSubmitting(false);
-      });
+    try {
+      await updateConfigPromise;
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -83,29 +95,73 @@ const WorkspaceManagementPage = observer(function WorkspaceManagementPage(_props
     >
       <div className="space-y-3">
         {formattedConfig ? (
-          <div className={cn("flex w-full items-center gap-14 rounded-sm")}>
-            <div className="flex grow items-center gap-4">
-              <div className="grow">
-                <div className="pb-1 text-16 font-medium">Prevent anyone else from creating a workspace.</div>
-                <div className={cn("text-11 leading-5 font-regular text-tertiary")}>
-                  Toggling this on will let only you create workspaces. You will have to invite users to new workspaces.
+          <div className="space-y-6">
+            <div className={cn("flex w-full items-center gap-14 rounded-sm")}>
+              <div className="flex grow items-center gap-4">
+                <div className="grow">
+                  <div className="pb-1 text-16 font-medium">Prevent anyone else from creating a workspace.</div>
+                  <div className={cn("text-11 leading-5 font-regular text-tertiary")}>
+                    Toggling this on will let only you create workspaces. You will have to invite users to new
+                    workspaces.
+                  </div>
+                </div>
+              </div>
+              <div className={`shrink-0 pr-4 ${isSubmitting && "opacity-70"}`}>
+                <div className="flex items-center gap-4">
+                  <ToggleSwitch
+                    value={Boolean(parseInt(disableWorkspaceCreation))}
+                    onChange={() => {
+                      if (Boolean(parseInt(disableWorkspaceCreation)) === true) {
+                        updateConfig("DISABLE_WORKSPACE_CREATION", "0");
+                      } else {
+                        updateConfig("DISABLE_WORKSPACE_CREATION", "1");
+                      }
+                    }}
+                    size="sm"
+                    disabled={isSubmitting}
+                  />
                 </div>
               </div>
             </div>
-            <div className={`shrink-0 pr-4 ${isSubmitting && "opacity-70"}`}>
-              <div className="flex items-center gap-4">
-                <ToggleSwitch
-                  value={Boolean(parseInt(disableWorkspaceCreation))}
-                  onChange={() => {
-                    if (Boolean(parseInt(disableWorkspaceCreation)) === true) {
-                      updateConfig("DISABLE_WORKSPACE_CREATION", "0");
-                    } else {
-                      updateConfig("DISABLE_WORKSPACE_CREATION", "1");
-                    }
-                  }}
-                  size="sm"
-                  disabled={isSubmitting}
-                />
+            <div className="flex w-full flex-col gap-3 rounded-sm sm:flex-row sm:items-start sm:gap-14">
+              <div className="grow">
+                <div className="pb-1 text-16 font-medium">Default workspace for new users</div>
+                <div className="text-11 leading-5 font-regular text-tertiary">
+                  New email and password sign-ups automatically join the selected workspace as Members.
+                </div>
+                {!defaultWorkspaceSlug && hasMultipleWorkspaces && (
+                  <div className="pt-1 text-11 leading-5 font-regular text-warning-primary">
+                    New users without an invitation will not join a workspace while no default is selected.
+                  </div>
+                )}
+                {defaultWorkspaceSlug && !defaultWorkspace && (
+                  <div className="pt-1 text-11 leading-5 font-regular text-danger-primary">
+                    The configured workspace is unavailable or has not been loaded. Select an available workspace to
+                    replace it.
+                  </div>
+                )}
+              </div>
+              <div className={`w-full shrink-0 sm:w-72 sm:pr-4 ${isSubmitting && "opacity-70"}`}>
+                <CustomSelect
+                  value={defaultWorkspaceSlug}
+                  label={<span className="truncate">{defaultWorkspaceLabel}</span>}
+                  onChange={(value: string) => updateConfig("DEFAULT_WORKSPACE_SLUG", value)}
+                  buttonClassName="border-subtle"
+                  className="w-full"
+                  disabled={isSubmitting || workspaceLoader === "init-loader"}
+                  input
+                >
+                  <CustomSelect.Option value="" className="w-full">
+                    <span className="truncate">No default workspace</span>
+                  </CustomSelect.Option>
+                  {workspaceOptions.map((workspace) => (
+                    <CustomSelect.Option key={workspace.id} value={workspace.slug} className="w-full">
+                      <span className="truncate">
+                        {workspace.name} [{workspace.slug}]
+                      </span>
+                    </CustomSelect.Option>
+                  ))}
+                </CustomSelect>
               </div>
             </div>
           </div>
