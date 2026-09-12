@@ -6,6 +6,7 @@
 
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
+import { useParams } from "next/navigation";
 import { Tab } from "@headlessui/react";
 // plane package imports
 import type { ICycle, IModule, IProject } from "@plane/types";
@@ -17,6 +18,7 @@ import TotalInsights from "../../total-insights";
 import CreatedVsResolved from "../created-vs-resolved";
 import CustomizedInsights from "../customized-insights";
 import WorkItemsInsightTable from "../workitems-insight-table";
+import { WorkItemCostReport } from "../cost-report";
 
 type Props = {
   fullScreen: boolean;
@@ -28,8 +30,13 @@ type Props = {
 
 export const WorkItemsModalMainContent = observer(function WorkItemsModalMainContent(props: Props) {
   const { projectDetails, cycleDetails, moduleDetails, fullScreen, isEpic } = props;
+  const params = useParams();
   const { updateSelectedProjects, updateSelectedCycle, updateSelectedModule, updateIsPeekView } = useAnalytics();
   const [isModalConfigured, setIsModalConfigured] = useState(false);
+  const [costMonth, setCostMonth] = useState(() => {
+    const date = new Date();
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 7);
+  });
 
   useEffect(() => {
     updateIsPeekView(true);
@@ -81,6 +88,14 @@ export const WorkItemsModalMainContent = observer(function WorkItemsModalMainCon
         <CreatedVsResolved />
         <CustomizedInsights peekView={!fullScreen} isEpic={isEpic} />
         <WorkItemsInsightTable />
+        {!isEpic && projectDetails?.id && (
+          <WorkItemCostReport
+            workspaceSlug={params.workspaceSlug.toString()}
+            projectId={projectDetails.id}
+            month={costMonth}
+            onMonthChange={setCostMonth}
+          />
+        )}
       </div>
     </Tab.Group>
   );

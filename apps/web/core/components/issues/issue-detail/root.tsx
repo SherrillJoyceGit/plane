@@ -4,6 +4,8 @@
  * See the LICENSE file for details.
  */
 
+/* eslint-disable no-shadow */
+
 import { useMemo } from "react";
 import { observer } from "mobx-react";
 // plane imports
@@ -22,10 +24,13 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { IssueCostService, retryAfterActualWorkConfirmation } from "@/services/issue";
 // local components
 import { IssuePeekOverview } from "../peek-overview";
 import { IssueMainContent } from "./main-content";
 import { IssueDetailsSidebar } from "./sidebar";
+
+const issueCostService = new IssueCostService();
 
 export type TIssueOperations = {
   fetch: (workspaceSlug: string, projectId: string, issueId: string, loader?: boolean) => Promise<void>;
@@ -95,6 +100,17 @@ export const IssueDetailRoot = observer(function IssueDetailRoot(props: TIssueDe
         try {
           await updateIssue(workspaceSlug, projectId, issueId, data);
         } catch (error) {
+          try {
+            const handled = await retryAfterActualWorkConfirmation(
+              error,
+              t("issue.cost.confirm_no_actual"),
+              () => issueCostService.confirmNoActualWork(workspaceSlug, projectId, issueId),
+              () => updateIssue(workspaceSlug, projectId, issueId, { ...data, confirm_no_actual_work: true })
+            );
+            if (handled) return;
+          } catch (confirmationError) {
+            console.error("Error confirming actual work:", confirmationError);
+          }
           console.log("Error in updating issue:", error);
           setToast({
             title: t("common.error.label"),

@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
-import { Controller, useWatch } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { ETabIndices, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { ParentPropertyIcon } from "@plane/propel/icons";
@@ -73,6 +73,7 @@ export const IssueDefaultProperties = observer(function IssueDefaultProperties(p
   const { getIssueTypeById } = useIssueType();
   const { isMobile } = usePlatformOS();
   const { allowPermissions } = useUserPermissions();
+  const { setValue } = useFormContext<TIssue>();
   // derived values
   const projectDetails = getProjectById(projectId);
   const typeId = useWatch({ control, name: "type_id" });
@@ -80,11 +81,20 @@ export const IssueDefaultProperties = observer(function IssueDefaultProperties(p
   const issueType = getIssueTypeById(typeId, projectId ?? undefined);
   const allowedTypeNames = getAllowedIssueTypeNames(!!parentId, subIssuesCount > 0);
   const canSetParent = canIssueSetParent(issueType?.name, parentId, subIssuesCount);
+  const canEstimatePersonDays = !parentId && ["Requirement", "Task"].includes(issueType?.name ?? "");
 
   const { getIndex } = getTabIndex(ETabIndices.ISSUE_FORM, isMobile);
 
   const canCreateLabel =
     projectId && allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.PROJECT, workspaceSlug, projectId);
+  const canViewCost =
+    projectId &&
+    allowPermissions(
+      [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
+      EUserPermissionsLevel.PROJECT,
+      workspaceSlug,
+      projectId
+    );
 
   const minDate = getDate(startDate);
   minDate?.setDate(minDate.getDate());
@@ -103,6 +113,8 @@ export const IssueDefaultProperties = observer(function IssueDefaultProperties(p
               value={value}
               onChange={(nextTypeId) => {
                 onChange(nextTypeId);
+                const nextType = getIssueTypeById(nextTypeId, projectId ?? undefined);
+                if (!["Requirement", "Task"].includes(nextType?.name ?? "")) setValue("estimated_person_days", null);
                 handleFormChange();
               }}
               projectId={projectId}
@@ -290,6 +302,28 @@ export const IssueDefaultProperties = observer(function IssueDefaultProperties(p
           )}
         />
       )}
+      {canViewCost && canEstimatePersonDays && (
+        <Controller
+          control={control}
+          name="estimated_person_days"
+          render={({ field: { value, onChange } }) => (
+            <label className="flex h-7 items-center gap-1 rounded-sm border-[0.5px] border-strong px-2 text-caption-sm-regular text-secondary">
+              {t("issue.cost.estimate")}
+              <input
+                type="number"
+                min="0.5"
+                step="0.5"
+                className="h-6 w-16 bg-transparent text-primary outline-none"
+                value={value ?? ""}
+                onChange={(event) => {
+                  onChange(event.target.value || null);
+                  handleFormChange();
+                }}
+              />
+            </label>
+          )}
+        />
+      )}
       {(parentId || canSetParent) && (
         <div className="h-7">
           {parentId ? (
@@ -357,6 +391,7 @@ export const IssueDefaultProperties = observer(function IssueDefaultProperties(p
             handleClose={() => setParentIssueListModalOpen(false)}
             onChange={(issue) => {
               onChange(issue.id);
+              setValue("estimated_person_days", null);
               handleFormChange();
               setSelectedParentIssue(issue);
             }}

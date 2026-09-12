@@ -133,6 +133,16 @@ class Issue(ChangeTrackerMixin, ProjectBaseModel):
         null=True,
         blank=True,
     )
+    estimated_person_days = models.DecimalField(max_digits=8, decimal_places=1, null=True, blank=True)
+    estimate_locked_at = models.DateTimeField(null=True, blank=True)
+    zero_actual_confirmed_at = models.DateTimeField(null=True, blank=True)
+    zero_actual_confirmed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="zero_actual_confirmed_issues",
+        null=True,
+        blank=True,
+    )
     name = models.CharField(max_length=255, verbose_name="Issue Name")
     description_json = models.JSONField(blank=True, default=dict)
     description_html = models.TextField(blank=True, default="<p></p>")
@@ -446,6 +456,34 @@ class IssueActivity(ProjectBaseModel):
     def __str__(self):
         """Return issue of the comment"""
         return str(self.issue)
+
+
+class IssueWorklog(ProjectBaseModel):
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="worklogs")
+    member = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="issue_worklogs",
+    )
+    work_date = models.DateField()
+    person_days = models.DecimalField(max_digits=2, decimal_places=1)
+    description = models.TextField(blank=True, default="")
+
+    class Meta:
+        verbose_name = "Issue Worklog"
+        verbose_name_plural = "Issue Worklogs"
+        db_table = "issue_worklogs"
+        ordering = ("-work_date", "-created_at")
+        indexes = [
+            models.Index(fields=["workspace", "member", "work_date"]),
+            models.Index(fields=["issue", "deleted_at"]),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(person_days__in=(0.5, 1.0)),
+                name="issue_worklog_person_days_half_or_full",
+            )
+        ]
 
 
 class IssueComment(ChangeTrackerMixin, ProjectBaseModel):

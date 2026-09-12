@@ -30,6 +30,7 @@ from plane.utils.content_validator import (
     validate_binary_data,
 )
 from plane.utils.issue_hierarchy import IssueHierarchyError, validate_issue_hierarchy
+from plane.utils.issue_cost import CostValidationError, validate_estimate_change
 from plane.app.permissions import ROLE
 
 
@@ -149,6 +150,24 @@ class DraftIssueCreateSerializer(BaseSerializer):
                     issue_type=final_type,
                 )
             except IssueHierarchyError as error:
+                raise serializers.ValidationError({error.field: error.message}) from error
+
+        if "estimated_person_days" in attrs:
+            if not ProjectMember.objects.filter(
+                project_id=project_id,
+                member_id=self.context.get("user_id"),
+                role__gte=ROLE.MEMBER.value,
+                is_active=True,
+            ).exists():
+                raise serializers.ValidationError({"estimated_person_days": "You cannot access cost data"})
+            try:
+                attrs["estimated_person_days"] = validate_estimate_change(
+                    issue=None,
+                    value=attrs["estimated_person_days"],
+                    parent=final_parent,
+                    issue_type=final_type,
+                )
+            except CostValidationError as error:
                 raise serializers.ValidationError({error.field: error.message}) from error
 
         if (
@@ -338,6 +357,7 @@ class DraftIssueSerializer(BaseSerializer):
             "sort_order",
             "completed_at",
             "estimate_point",
+            "estimated_person_days",
             "priority",
             "start_date",
             "target_date",
@@ -355,6 +375,17 @@ class DraftIssueSerializer(BaseSerializer):
             "description_html",
         ]
         read_only_fields = fields
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not ProjectMember.objects.filter(
+            project_id=instance.project_id,
+            member_id=self.context.get("user_id"),
+            role__gte=ROLE.MEMBER.value,
+            is_active=True,
+        ).exists():
+            data.pop("estimated_person_days", None)
+        return data
 
 
 class DraftIssueDetailSerializer(DraftIssueSerializer):

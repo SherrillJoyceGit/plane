@@ -139,6 +139,13 @@ from .issue.attachment import (
 )
 
 from .issue.comment import IssueCommentViewSet, CommentReactionViewSet
+from .issue.cost import (
+    ActualWorkConfirmationEndpoint,
+    IssueCostEndpoint,
+    IssueWorklogDetailEndpoint,
+    IssueWorklogListEndpoint,
+    ProjectCostReportEndpoint,
+)
 
 from .issue.label import LabelViewSet, BulkCreateIssueLabelsEndpoint
 

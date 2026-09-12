@@ -32,6 +32,11 @@ from plane.app.views import (
     IssueMetaEndpoint,
     IssueDetailIdentifierEndpoint,
     IssueTypeViewSet,
+    ActualWorkConfirmationEndpoint,
+    IssueCostEndpoint,
+    IssueWorklogDetailEndpoint,
+    IssueWorklogListEndpoint,
+    ProjectCostReportEndpoint,
 )
 
 urlpatterns = [
@@ -68,6 +73,31 @@ urlpatterns = [
             }
         ),
         name="project-issue",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/cost/",
+        IssueCostEndpoint.as_view(),
+        name="issue-cost",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/worklogs/",
+        IssueWorklogListEndpoint.as_view(),
+        name="issue-worklogs",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/worklogs/<uuid:worklog_id>/",
+        IssueWorklogDetailEndpoint.as_view(),
+        name="issue-worklog-detail",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/actual-work-confirmation/",
+        ActualWorkConfirmationEndpoint.as_view(),
+        name="issue-actual-work-confirmation",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/cost-report/",
+        ProjectCostReportEndpoint.as_view(),
+        name="project-cost-report",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/issue-labels/",

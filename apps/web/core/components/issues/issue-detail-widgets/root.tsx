@@ -11,6 +11,7 @@ import type { TIssueServiceType, TWorkItemWidgets } from "@plane/types";
 import { IssueDetailWidgetActionButtons } from "./action-buttons";
 import { IssueDetailWidgetCollapsibles } from "./issue-detail-widget-collapsibles";
 import { IssueDetailWidgetModals } from "./issue-detail-widget-modals";
+import { IssueCostSection } from "./cost-section";
 
 type Props = {
   workspaceSlug: string;
@@ -52,6 +53,9 @@ export function IssueDetailWidgets(props: Props) {
           issueServiceType={issueServiceType}
           hideWidgets={hideWidgets}
         />
+        {issueServiceType === "issues" && (
+          <IssueCostSection workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} disabled={disabled} />
+        )}
       </div>
       {renderWidgetModals && (
         <IssueDetailWidgetModals

@@ -36,6 +36,7 @@ from plane.db.models import (
     DraftIssueCycle,
     Workspace,
     FileAsset,
+    ProjectMember,
 )
 from .. import BaseViewSet
 from plane.bgtasks.issue_activities_task import issue_activity
@@ -105,7 +106,9 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
         return self.paginate(
             request=request,
             queryset=(issues),
-            on_results=lambda issues: DraftIssueSerializer(issues, many=True).data,
+            on_results=lambda issues: DraftIssueSerializer(
+                issues, many=True, context={"user_id": request.user.id}
+            ).data,
         )
 
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
@@ -117,6 +120,7 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
             context={
                 "workspace_id": workspace.id,
                 "project_id": request.data.get("project_id", None),
+                "user_id": request.user.id,
             },
         )
         if serializer.is_valid():
@@ -131,6 +135,7 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
                     "sort_order",
                     "completed_at",
                     "estimate_point",
+                    "estimated_person_days",
                     "priority",
                     "start_date",
                     "target_date",
@@ -149,6 +154,10 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
                 )
                 .first()
             )
+            if not ProjectMember.objects.filter(
+                project_id=issue["project_id"], member=request.user, role__gte=ROLE.MEMBER.value, is_active=True
+            ).exists():
+                issue.pop("estimated_person_days", None)
 
             return Response(issue, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -174,6 +183,7 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
             context={
                 "project_id": project_id,
                 "cycle_id": request.data.get("cycle_id", "not_provided"),
+                "user_id": request.user.id,
             },
         )
 
@@ -193,7 +203,7 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = DraftIssueDetailSerializer(issue)
+        serializer = DraftIssueDetailSerializer(issue, context={"user_id": request.user.id})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @allow_permission(allowed_roles=[ROLE.ADMIN], creator=True, model=DraftIssue, level="WORKSPACE")
@@ -212,8 +222,12 @@ class WorkspaceDraftIssueViewSet(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        issue_data = request.data.copy()
+        if "estimated_person_days" not in issue_data:
+            issue_data["estimated_person_days"] = draft_issue.estimated_person_days
+
         serializer = IssueCreateSerializer(
-            data=request.data,
+            data=issue_data,
             context={
                 "project_id": draft_issue.project_id,
                 "workspace_id": draft_issue.project.workspace_id,

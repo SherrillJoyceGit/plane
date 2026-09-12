@@ -5,7 +5,8 @@
 # Django imports
 from django.utils import timezone
 from lxml import html
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
+from crum import get_current_user
 
 #  Third party imports
 from rest_framework import serializers
@@ -33,6 +34,13 @@ from plane.utils.content_validator import (
     validate_binary_data,
 )
 from plane.utils.issue_hierarchy import IssueHierarchyError, validate_issue_hierarchy
+from plane.utils.issue_cost import (
+    CostValidationError,
+    apply_cost_state_transition,
+    record_cost_activity,
+    validate_cost_state_transition,
+    validate_estimate_change,
+)
 
 from .base import BaseSerializer
 from .cycle import CycleLiteSerializer, CycleSerializer
@@ -68,10 +76,23 @@ class IssueSerializer(BaseSerializer):
     type_id = serializers.PrimaryKeyRelatedField(
         source="type", queryset=IssueType.objects.all(), required=False, allow_null=True
     )
+    estimated_person_days = serializers.DecimalField(max_digits=8, decimal_places=1, allow_null=True, required=False)
+    confirm_no_actual_work = serializers.BooleanField(required=False, write_only=True, default=False)
 
     class Meta:
         model = Issue
-        read_only_fields = ["id", "workspace", "project", "type", "updated_by", "updated_at", "completed_at"]
+        read_only_fields = [
+            "id",
+            "workspace",
+            "project",
+            "type",
+            "updated_by",
+            "updated_at",
+            "completed_at",
+            "estimate_locked_at",
+            "zero_actual_confirmed_at",
+            "zero_actual_confirmed_by",
+        ]
         exclude = ["description_json", "description_stripped"]
 
     def validate(self, data):
@@ -147,6 +168,38 @@ class IssueSerializer(BaseSerializer):
         except IssueHierarchyError as error:
             raise serializers.ValidationError({error.field: error.message}) from error
 
+        final_parent = data.get("parent", self.instance.parent if self.instance else None)
+        final_type = data.get("type", self.instance.type if self.instance else None)
+        final_estimate = data.get(
+            "estimated_person_days", self.instance.estimated_person_days if self.instance else None
+        )
+        if "estimated_person_days" in data or "parent" in data or "type" in data:
+            try:
+                final_estimate = validate_estimate_change(
+                    issue=self.instance,
+                    value=final_estimate,
+                    parent=final_parent,
+                    issue_type=final_type,
+                )
+                if "estimated_person_days" in data:
+                    data["estimated_person_days"] = final_estimate
+            except CostValidationError as error:
+                raise serializers.ValidationError({error.field: error.message}) from error
+
+        final_state = data.get("state", self.instance.state if self.instance else None)
+        if final_state and (self.instance is None or ("state" in data and final_state != self.instance.state)):
+            try:
+                validate_cost_state_transition(
+                    issue=self.instance,
+                    final_state=final_state,
+                    parent=final_parent,
+                    issue_type=final_type,
+                    estimated_person_days=final_estimate,
+                    confirm_no_actual_work=data.get("confirm_no_actual_work", False),
+                )
+            except CostValidationError as error:
+                raise serializers.ValidationError({error.field: error.message}) from error
+
         if (
             data.get("estimate_point")
             and not EstimatePoint.objects.filter(
@@ -159,7 +212,10 @@ class IssueSerializer(BaseSerializer):
 
         return data
 
+    @transaction.atomic
     def create(self, validated_data):
+        validated_data.pop("confirm_no_actual_work", None)
+        estimated_person_days = validated_data.get("estimated_person_days")
         assignees = validated_data.pop("assignees", None)
         labels = validated_data.pop("labels", None)
 
@@ -170,6 +226,16 @@ class IssueSerializer(BaseSerializer):
         issue_type = validated_data.pop("type", None)
 
         issue = Issue.objects.create(**validated_data, project_id=project_id, type=issue_type)
+        apply_cost_state_transition(issue=issue, previous_state_group=None)
+        if estimated_person_days is not None:
+            record_cost_activity(
+                issue,
+                issue.created_by_id,
+                "estimated_person_days",
+                None,
+                str(estimated_person_days),
+                "created",
+            )
 
         # Issue Audit Users
         created_by_id = issue.created_by_id
@@ -237,7 +303,15 @@ class IssueSerializer(BaseSerializer):
 
         return issue
 
+    @transaction.atomic
     def update(self, instance, validated_data):
+        validated_data.pop("confirm_no_actual_work", None)
+        previous_state_group = instance.state.group if instance.state else None
+        estimate_changed = (
+            "estimated_person_days" in validated_data
+            and validated_data["estimated_person_days"] != instance.estimated_person_days
+        )
+        previous_estimate = instance.estimated_person_days
         assignees = validated_data.pop("assignees", None)
         labels = validated_data.pop("labels", None)
 
@@ -291,10 +365,30 @@ class IssueSerializer(BaseSerializer):
 
         # Time updation occues even when other related models are updated
         instance.updated_at = timezone.now()
-        return super().update(instance, validated_data)
+        instance = super().update(instance, validated_data)
+        apply_cost_state_transition(issue=instance, previous_state_group=previous_state_group)
+        if estimate_changed:
+            record_cost_activity(
+                instance,
+                instance.updated_by_id,
+                "estimated_person_days",
+                str(previous_estimate) if previous_estimate is not None else None,
+                str(instance.estimated_person_days) if instance.estimated_person_days is not None else None,
+            )
+        return instance
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        for field in ("estimate_locked_at", "zero_actual_confirmed_at", "zero_actual_confirmed_by"):
+            data.pop(field, None)
+        user = get_current_user()
+        if not user or not ProjectMember.objects.filter(
+            project_id=instance.project_id,
+            member=user,
+            role__in=(15, 20),
+            is_active=True,
+        ).exists():
+            data.pop("estimated_person_days", None)
         if "assignees" in self.fields:
             if "assignees" in self.expand:
                 from .user import UserLiteSerializer

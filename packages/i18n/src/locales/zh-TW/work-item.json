@@ -1,5 +1,25 @@
 {
   "issue": {
+    "cost": {
+      "title": "研發成本",
+      "estimate": "預估人天",
+      "estimated_total": "專案預估",
+      "actual_total": "累計實際",
+      "monthly_actual": "當月實際",
+      "variance": "累計差異",
+      "locked": "預估已鎖定",
+      "log_on_children": "該工作項已有子項，請在子項登記實際人天。",
+      "member": "作業人員",
+      "work_date": "作業日期",
+      "person_days": "人天",
+      "description": "說明",
+      "add_worklog": "登記人天",
+      "missing_estimate": "缺少預估",
+      "pending_actual": "待補登或確認",
+      "report_title": "研發成本",
+      "confirm_no_actual": "目前工作項尚未登記實際人天，是否確認該工作項沒有產生實際工作量？",
+      "error": "成本資料更新失敗。"
+    },
     "label": "{count, plural, one {工作事項} other {工作事項}}",
     "all": "所有工作事項",
     "edit": "編輯工作事項",

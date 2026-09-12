@@ -1,5 +1,25 @@
 {
   "issue": {
+    "cost": {
+      "title": "R&D cost",
+      "estimate": "Estimated person-days",
+      "estimated_total": "Total estimated",
+      "actual_total": "Total actual",
+      "monthly_actual": "Monthly actual",
+      "variance": "Variance",
+      "locked": "Estimate locked",
+      "log_on_children": "Actual work is recorded on child work items.",
+      "member": "Member",
+      "work_date": "Work date",
+      "person_days": "Person-days",
+      "description": "Description",
+      "add_worklog": "Add worklog",
+      "missing_estimate": "Missing estimates",
+      "pending_actual": "Pending actual work",
+      "report_title": "R&D cost",
+      "confirm_no_actual": "No actual work has been recorded. Confirm that this work item produced no actual workload?",
+      "error": "Cost data could not be updated."
+    },
     "label": "{count, plural, one {Item de trabalho} other {Itens de trabalho}}",
     "all": "Todos os Itens de trabalho",
     "edit": "Editar item de trabalho",

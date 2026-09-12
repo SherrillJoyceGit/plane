@@ -4,12 +4,13 @@
  * See the LICENSE file for details.
  */
 
-/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-shadow, react-hooks/exhaustive-deps */
 import { useCallback, useMemo } from "react";
 // types
 import { useParams } from "next/navigation";
 import type { TSupportedFilterTypeForUpdate } from "@plane/constants";
 import { EDraftIssuePaginationType } from "@plane/constants";
+import { useTranslation } from "@plane/i18n";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
@@ -21,7 +22,42 @@ import type {
   TSupportedFilterForUpdate,
 } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
+import { IssueCostService, retryAfterActualWorkConfirmation } from "@/services/issue";
 import { useIssues } from "./store/use-issues";
+
+const issueCostService = new IssueCostService();
+
+type TStoreIssueUpdate = (
+  workspaceSlug: string,
+  projectId: string,
+  issueId: string,
+  data: Partial<TIssue>
+) => Promise<void>;
+
+const useIssueUpdateWithActualWorkConfirmation = (
+  workspaceSlug: string | undefined,
+  storeUpdateIssue: TStoreIssueUpdate
+) => {
+  const { t } = useTranslation();
+
+  return useCallback(
+    async (projectId: string | undefined | null, issueId: string, data: Partial<TIssue>) => {
+      if (!workspaceSlug || !projectId) return;
+      try {
+        await storeUpdateIssue(workspaceSlug, projectId, issueId, data);
+      } catch (error) {
+        const handled = await retryAfterActualWorkConfirmation(
+          error,
+          t("issue.cost.confirm_no_actual"),
+          () => issueCostService.confirmNoActualWork(workspaceSlug, projectId, issueId),
+          () => storeUpdateIssue(workspaceSlug, projectId, issueId, { ...data, confirm_no_actual_work: true })
+        );
+        if (!handled) throw error;
+      }
+    },
+    [storeUpdateIssue, t, workspaceSlug]
+  );
+};
 
 export interface IssueActions {
   fetchIssues: (
@@ -116,13 +152,7 @@ const useProjectIssueActions = () => {
     },
     [issues.quickAddIssue, workspaceSlug]
   );
-  const updateIssue = useCallback(
-    async (projectId: string | undefined | null, issueId: string, data: Partial<TIssue>) => {
-      if (!workspaceSlug || !projectId) return;
-      return await issues.updateIssue(workspaceSlug, projectId, issueId, data);
-    },
-    [issues.updateIssue, workspaceSlug]
-  );
+  const updateIssue = useIssueUpdateWithActualWorkConfirmation(workspaceSlug, issues.updateIssue);
   const removeIssue = useCallback(
     async (projectId: string | undefined | null, issueId: string) => {
       if (!workspaceSlug || !projectId) return;
@@ -287,13 +317,7 @@ const useCycleIssueActions = () => {
     },
     [issues.quickAddIssue, workspaceSlug, cycleId]
   );
-  const updateIssue = useCallback(
-    async (projectId: string | undefined | null, issueId: string, data: Partial<TIssue>) => {
-      if (!workspaceSlug || !projectId) return;
-      return await issues.updateIssue(workspaceSlug, projectId, issueId, data);
-    },
-    [issues.updateIssue, workspaceSlug]
-  );
+  const updateIssue = useIssueUpdateWithActualWorkConfirmation(workspaceSlug, issues.updateIssue);
   const removeIssue = useCallback(
     async (projectId: string | undefined | null, issueId: string) => {
       if (!workspaceSlug || !projectId) return;
@@ -394,13 +418,7 @@ const useModuleIssueActions = () => {
     },
     [issues.quickAddIssue, workspaceSlug, moduleId]
   );
-  const updateIssue = useCallback(
-    async (projectId: string | undefined | null, issueId: string, data: Partial<TIssue>) => {
-      if (!workspaceSlug || !projectId) return;
-      return await issues.updateIssue(workspaceSlug, projectId, issueId, data);
-    },
-    [issues.updateIssue, workspaceSlug]
-  );
+  const updateIssue = useIssueUpdateWithActualWorkConfirmation(workspaceSlug, issues.updateIssue);
   const removeIssue = useCallback(
     async (projectId: string | undefined | null, issueId: string) => {
       if (!workspaceSlug || !projectId) return;
@@ -483,13 +501,7 @@ const useProfileIssueActions = () => {
     },
     [issues.createIssue, workspaceSlug]
   );
-  const updateIssue = useCallback(
-    async (projectId: string | undefined | null, issueId: string, data: Partial<TIssue>) => {
-      if (!workspaceSlug || !projectId) return;
-      return await issues.updateIssue(workspaceSlug, projectId, issueId, data);
-    },
-    [issues.updateIssue, workspaceSlug]
-  );
+  const updateIssue = useIssueUpdateWithActualWorkConfirmation(workspaceSlug, issues.updateIssue);
   const removeIssue = useCallback(
     async (projectId: string | undefined | null, issueId: string) => {
       if (!workspaceSlug || !projectId) return;
@@ -565,13 +577,7 @@ const useProjectViewIssueActions = () => {
     },
     [issues.quickAddIssue, workspaceSlug]
   );
-  const updateIssue = useCallback(
-    async (projectId: string | undefined | null, issueId: string, data: Partial<TIssue>) => {
-      if (!workspaceSlug || !projectId) return;
-      return await issues.updateIssue(workspaceSlug, projectId, issueId, data);
-    },
-    [issues.updateIssue, workspaceSlug]
-  );
+  const updateIssue = useIssueUpdateWithActualWorkConfirmation(workspaceSlug, issues.updateIssue);
   const removeIssue = useCallback(
     async (projectId: string | undefined | null, issueId: string) => {
       if (!workspaceSlug || !projectId) return;
@@ -698,13 +704,7 @@ const useGlobalIssueActions = () => {
     },
     [issues.createIssue, workspaceSlug]
   );
-  const updateIssue = useCallback(
-    async (projectId: string | undefined | null, issueId: string, data: Partial<TIssue>) => {
-      if (!workspaceSlug || !projectId) return;
-      return await issues.updateIssue(workspaceSlug, projectId, issueId, data);
-    },
-    [issues.updateIssue, workspaceSlug]
-  );
+  const updateIssue = useIssueUpdateWithActualWorkConfirmation(workspaceSlug, issues.updateIssue);
   const removeIssue = useCallback(
     async (projectId: string | undefined | null, issueId: string) => {
       if (!workspaceSlug || !projectId) return;

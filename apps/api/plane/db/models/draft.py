@@ -42,6 +42,7 @@ class DraftIssue(WorkspaceBaseModel):
         null=True,
         blank=True,
     )
+    estimated_person_days = models.DecimalField(max_digits=8, decimal_places=1, null=True, blank=True)
     name = models.CharField(max_length=255, verbose_name="Issue Name", blank=True, null=True)
     description_json = models.JSONField(blank=True, default=dict)
     description_html = models.TextField(blank=True, default="<p></p>")

@@ -1,5 +1,25 @@
 {
   "issue": {
+    "cost": {
+      "title": "研发成本",
+      "estimate": "预估人天",
+      "estimated_total": "项目预估",
+      "actual_total": "累计实际",
+      "monthly_actual": "当月实际",
+      "variance": "累计差异",
+      "locked": "预估已锁定",
+      "log_on_children": "该工作项已有子项，请在子项登记实际人天。",
+      "member": "作业人员",
+      "work_date": "作业日期",
+      "person_days": "人天",
+      "description": "说明",
+      "add_worklog": "登记人天",
+      "missing_estimate": "缺失预估",
+      "pending_actual": "待补录或确认",
+      "report_title": "研发成本",
+      "confirm_no_actual": "当前工作项尚未登记实际人天，是否确认该工作项没有产生实际工作量？",
+      "error": "成本数据更新失败。"
+    },
     "label": "{count, plural, one {工作项} other {工作项}}",
     "all": "所有工作项",
     "edit": "编辑工作项",

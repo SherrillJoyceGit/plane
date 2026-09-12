@@ -4,6 +4,8 @@
  * See the LICENSE file for details.
  */
 
+/* eslint-disable no-shadow */
+
 import { useState, useMemo, useCallback } from "react";
 import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
@@ -20,9 +22,12 @@ import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { useWorkItemProperties } from "@/hooks/use-issue-properties";
+import { IssueCostService, retryAfterActualWorkConfirmation } from "@/services/issue";
 // local imports
 import type { TIssueOperations } from "../issue-detail";
 import { IssueView } from "./view";
+
+const issueCostService = new IssueCostService();
 
 export const IssuePeekOverview = observer(function IssuePeekOverview(props: IWorkItemPeekOverview) {
   const {
@@ -83,7 +88,23 @@ export const IssuePeekOverview = observer(function IssuePeekOverview(props: IWor
               fetchActivities(workspaceSlug, projectId, issueId);
               return;
             })
-            .catch((_error) => {
+            .catch(async (error) => {
+              try {
+                const handled = await retryAfterActualWorkConfirmation(
+                  error,
+                  t("issue.cost.confirm_no_actual"),
+                  () => issueCostService.confirmNoActualWork(workspaceSlug, projectId, issueId),
+                  async () => {
+                    await issues.updateIssue(workspaceSlug, projectId, issueId, {
+                      ...data,
+                      confirm_no_actual_work: true,
+                    });
+                  }
+                );
+                if (handled) return;
+              } catch (confirmationError) {
+                console.error("Error confirming actual work:", confirmationError);
+              }
               setToast({
                 title: t("toast.error"),
                 type: TOAST_TYPE.ERROR,

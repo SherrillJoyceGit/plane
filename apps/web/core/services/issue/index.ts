@@ -6,6 +6,7 @@
 
 export * from "./issue_archive.service";
 export * from "./issue.service";
+export * from "./issue-cost.service";
 export * from "./issue_type.service";
 export * from "./issue_reaction.service";
 export * from "./issue_label.service";

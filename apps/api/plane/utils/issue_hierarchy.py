@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-from plane.db.models import Issue
+from plane.db.models import Issue, IssueWorklog
 
 
 TOP_LEVEL_ISSUE_TYPES = frozenset({"Requirement", "Task", "Bug"})
@@ -37,6 +37,8 @@ def validate_issue_hierarchy(*, issue, project_id, parent, issue_type):
         raise IssueHierarchyError("parent_id", "Work items can have at most two levels")
     if parent.type is None or parent.type.name not in PARENT_ISSUE_TYPES:
         raise IssueHierarchyError("parent_id", "Only top-level Requirement or Task work items can have children")
+    if IssueWorklog.objects.filter(issue=parent, deleted_at__isnull=True).exists():
+        raise IssueHierarchyError("parent_id", "A work item with actual work cannot have children added")
     if issue_type.name not in CHILD_ISSUE_TYPES:
         raise IssueHierarchyError("type_id", "Child work items can only be Task or Bug")
     if has_children:

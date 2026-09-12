@@ -53,6 +53,8 @@ export type TBaseIssue = {
   label_ids: string[];
   assignee_ids: string[];
   estimate_point: string | null;
+  estimated_person_days?: string | null;
+  confirm_no_actual_work?: boolean;
 
   sub_issues_count: number;
   attachment_count: number;
@@ -105,6 +107,54 @@ export type TIssue = TBaseIssue & {
 
 export type TIssueMap = {
   [issue_id: string]: TIssue;
+};
+
+export type TIssueCost = {
+  issue_id: string;
+  cost_root_id: string;
+  estimated_person_days: string | null;
+  estimate_locked_at: string | null;
+  actual_person_days: string;
+  variance_person_days: string | null;
+  zero_actual_confirmed_at: string | null;
+  zero_actual_confirmed_by: string | null;
+  can_log_actual: boolean;
+};
+
+export type TIssueWorklog = {
+  id: string;
+  member_id: string;
+  work_date: string;
+  person_days: "0.5" | "1.0";
+  description: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  updated_by: string | null;
+};
+
+export type TProjectCostReportIssue = {
+  issue_id: string;
+  name: string;
+  sequence_id: number;
+  estimated_person_days: string | null;
+  monthly_actual_person_days: string;
+  actual_person_days: string;
+  variance_person_days: string | null;
+  pending_actual_count: number;
+};
+
+export type TProjectCostReport = {
+  month: string;
+  summary: {
+    estimated_person_days: string;
+    monthly_actual_person_days: string;
+    actual_person_days: string;
+    variance_person_days: string;
+    missing_estimate_count: number;
+    pending_actual_count: number;
+  };
+  issues: TProjectCostReportIssue[];
 };
 
 export type TIssueResponseResults =
