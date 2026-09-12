@@ -32,6 +32,7 @@ from plane.utils.content_validator import (
     validate_html_content,
     validate_binary_data,
 )
+from plane.utils.issue_hierarchy import IssueHierarchyError, validate_issue_hierarchy
 
 from .base import BaseSerializer
 from .cycle import CycleLiteSerializer, CycleSerializer
@@ -136,16 +137,15 @@ class IssueSerializer(BaseSerializer):
         ):
             raise serializers.ValidationError("State is not valid please pass a valid state_id")
 
-        # Check parent issue is from workspace as it can be cross workspace
-        if (
-            data.get("parent")
-            and not Issue.objects.filter(
-                workspace_id=self.context.get("workspace_id"),
-                project_id=self.context.get("project_id"),
-                pk=data.get("parent").id,
-            ).exists()
-        ):
-            raise serializers.ValidationError("Parent is not valid issue_id please pass a valid issue_id")
+        try:
+            validate_issue_hierarchy(
+                issue=self.instance,
+                project_id=project_id,
+                parent=data.get("parent", self.instance.parent if self.instance else None),
+                issue_type=data.get("type", self.instance.type if self.instance else None),
+            )
+        except IssueHierarchyError as error:
+            raise serializers.ValidationError({error.field: error.message}) from error
 
         if (
             data.get("estimate_point")

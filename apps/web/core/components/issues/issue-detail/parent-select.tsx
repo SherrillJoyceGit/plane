@@ -10,11 +10,13 @@ import Link from "next/link";
 
 import { useTranslation } from "@plane/i18n";
 import { EditIcon, CloseIcon } from "@plane/propel/icons";
+import { canIssueSetParent } from "@plane/shared-state";
 // plane imports
 import { Tooltip } from "@plane/propel/tooltip";
 import { cn } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
+import { useIssueType } from "@/hooks/store/use-issue-type";
 import { useProject } from "@/hooks/store/use-project";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // components
@@ -52,6 +54,7 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
   const { t } = useTranslation();
   // store hooks
   const { getProjectById } = useProject();
+  const { getIssueTypeById } = useIssueType();
   const {
     issue: { getIssueById },
   } = useIssueDetail();
@@ -60,6 +63,8 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
   // derived values
   const issue = getIssueById(issueId);
   const parentIssue = issue?.parent_id ? getIssueById(issue.parent_id) : undefined;
+  const issueType = getIssueTypeById(issue?.type_id, projectId);
+  const canSetParent = canIssueSetParent(issueType?.name, issue?.parent_id ?? null, issue?.sub_issues_count ?? 0);
   const parentIssueProjectDetails =
     parentIssue && parentIssue.project_id ? getProjectById(parentIssue.project_id) : undefined;
   const { isMobile } = usePlatformOS();
@@ -71,26 +76,25 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
       <ParentIssuesListModal
         projectId={projectId}
         issueId={issueId}
-        isOpen={isParentIssueModalOpen === issueId}
+        isOpen={canSetParent && isParentIssueModalOpen === issueId}
         handleClose={() => toggleParentIssueModal(null)}
-        onChange={(issue: any) => handleParentIssue(issue?.id)}
+        onChange={(parentCandidate: any) => handleParentIssue(parentCandidate?.id)}
       />
-      <button
-        type="button"
-        className={cn(
-          "group flex items-center justify-between gap-2 rounded-sm px-2 py-0.5 outline-none",
-          {
-            "cursor-not-allowed": disabled,
-            "hover:bg-layer-transparent-hover": !disabled,
-            "bg-layer-transparent-selected": isParentIssueModalOpen,
-          },
-          className
-        )}
-        onClick={() => toggleParentIssueModal(issue.id)}
-        disabled={disabled}
-      >
-        {issue.parent_id && parentIssue ? (
-          <div className="flex items-center gap-1.5">
+      <div className={cn("flex items-center", className)}>
+        <button
+          type="button"
+          className={cn(
+            "group flex h-full flex-1 items-center justify-between gap-2 rounded-sm px-2 py-0.5 outline-none",
+            {
+              "cursor-not-allowed": disabled || !canSetParent,
+              "hover:bg-layer-transparent-hover": !disabled && canSetParent,
+              "bg-layer-transparent-selected": isParentIssueModalOpen,
+            }
+          )}
+          onClick={() => toggleParentIssueModal(issue.id)}
+          disabled={disabled || !canSetParent}
+        >
+          {issue.parent_id && parentIssue ? (
             <Tooltip tooltipHeading="Title" tooltipContent={parentIssue.name} isMobile={isMobile}>
               <Link href={workItemLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                 {parentIssue?.project_id && parentIssueProjectDetails && (
@@ -105,34 +109,31 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
                 )}
               </Link>
             </Tooltip>
-
-            {!disabled && (
-              <Tooltip tooltipContent={t("common.remove")} position="bottom" isMobile={isMobile}>
-                <span
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleRemoveSubIssue(workspaceSlug, projectId, parentIssue.id, issueId);
-                  }}
-                >
-                  <CloseIcon className="h-2.5 w-2.5 text-tertiary hover:text-danger-primary" />
-                </span>
-              </Tooltip>
-            )}
-          </div>
-        ) : (
-          <span className="text-body-xs-medium text-placeholder">{t("issue.add.parent")}</span>
+          ) : (
+            <span className="text-body-xs-medium text-placeholder">{t("issue.add.parent")}</span>
+          )}
+          {!disabled && (
+            <span
+              className={cn("flex-shrink-0 p-1 opacity-0 group-hover:opacity-100", {
+                "text-placeholder": !issue.parent_id && !parentIssue,
+              })}
+            >
+              <EditIcon className="h-2.5 w-2.5 flex-shrink-0" />
+            </span>
+          )}
+        </button>
+        {issue.parent_id && parentIssue && !disabled && (
+          <Tooltip tooltipContent={t("common.remove")} position="bottom" isMobile={isMobile}>
+            <button
+              type="button"
+              className="p-1"
+              onClick={() => handleRemoveSubIssue(workspaceSlug, projectId, parentIssue.id, issueId)}
+            >
+              <CloseIcon className="h-2.5 w-2.5 text-tertiary hover:text-danger-primary" />
+            </button>
+          </Tooltip>
         )}
-        {!disabled && (
-          <span
-            className={cn("flex-shrink-0 p-1 opacity-0 group-hover:opacity-100", {
-              "text-placeholder": !issue.parent_id && !parentIssue,
-            })}
-          >
-            <EditIcon className="h-2.5 w-2.5 flex-shrink-0" />
-          </span>
-        )}
-      </button>
+      </div>
     </>
   );
 });

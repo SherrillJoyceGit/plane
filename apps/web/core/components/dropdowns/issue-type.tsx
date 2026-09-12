@@ -21,14 +21,26 @@ type Props = {
   buttonClassName?: string;
   hideText?: boolean;
   tabIndex?: number;
+  allowedTypeNames?: readonly string[];
 };
 
 export const IssueTypeDropdown = observer(function IssueTypeDropdown(props: Props) {
-  const { value, onChange, projectId, disabled = false, buttonClassName, hideText = false, tabIndex } = props;
+  const {
+    value,
+    onChange,
+    projectId,
+    disabled = false,
+    buttonClassName,
+    hideText = false,
+    tabIndex,
+    allowedTypeNames,
+  } = props;
   const { workspaceSlug } = useParams();
   const { currentLocale } = useTranslation();
   const { getProjectIssueTypes, getIssueTypeById, fetchProjectIssueTypes } = useIssueType();
-  const issueTypes = getProjectIssueTypes(projectId) ?? [];
+  const issueTypes = (getProjectIssueTypes(projectId) ?? []).filter(
+    (issueType) => !allowedTypeNames || allowedTypeNames.includes(issueType.name)
+  );
   const selectedType = getIssueTypeById(value, projectId ?? undefined);
   const selectedName = getIssueTypeDisplayName(selectedType?.name ?? "Task", currentLocale);
 

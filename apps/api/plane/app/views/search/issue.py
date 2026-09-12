@@ -120,8 +120,10 @@ class IssueSearchEndpoint(BaseAPIView):
         if query:
             issues = self.search_issues_by_query(query, issues)
 
-        if parent == "true" and issue_id:
-            issues = self.search_issues_and_excluding_parent(issues, issue_id)
+        if parent == "true":
+            issues = issues.filter(parent__isnull=True, type__name__in=("Requirement", "Task"))
+            if issue_id:
+                issues = self.search_issues_and_excluding_parent(issues, issue_id)
 
         if issue_relation == "true" and issue_id:
             issues = self.filter_issues_excluding_related_issues(issue_id, issues)
@@ -152,6 +154,7 @@ class IssueSearchEndpoint(BaseAPIView):
                 "project__name",
                 "project__identifier",
                 "project_id",
+                "type_id",
                 "workspace__slug",
                 "state__name",
                 "state__group",

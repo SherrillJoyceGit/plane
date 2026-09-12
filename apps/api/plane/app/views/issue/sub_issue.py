@@ -6,8 +6,9 @@
 import json
 
 # Django imports
-from django.utils import timezone
+from django.db import transaction
 from django.db.models import OuterRef, Func, F, Q, Value, UUIDField, Subquery, Count, IntegerField
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.gzip import gzip_page
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -28,6 +29,7 @@ from plane.utils.timezone_converter import user_timezone_converter
 from collections import defaultdict
 from plane.utils.host import base_host
 from plane.utils.order_queryset import order_issue_queryset
+from plane.utils.issue_hierarchy import IssueHierarchyError, validate_issue_hierarchy
 
 
 class SubIssuesEndpoint(BaseAPIView):
@@ -203,7 +205,6 @@ class SubIssuesEndpoint(BaseAPIView):
 
     # Assign multiple sub issues
     def post(self, request, slug, project_id, issue_id):
-        parent_issue = Issue.issue_objects.get(pk=issue_id)
         sub_issue_ids = request.data.get("sub_issue_ids", [])
 
         if not len(sub_issue_ids):
@@ -212,13 +213,42 @@ class SubIssuesEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Scope to workspace to prevent cross-tenant IDOR
-        sub_issues = Issue.issue_objects.filter(id__in=sub_issue_ids, workspace__slug=slug)
+        if len(set(sub_issue_ids)) != len(sub_issue_ids):
+            return Response({"error": "Sub Issue IDs must be unique"}, status=status.HTTP_400_BAD_REQUEST)
 
-        for sub_issue in sub_issues:
-            sub_issue.parent = parent_issue
+        with transaction.atomic():
+            parent_issue = (
+                Issue.issue_objects.select_for_update(of=("self",))
+                .select_related("type")
+                .filter(pk=issue_id, project_id=project_id, workspace__slug=slug)
+                .first()
+            )
+            if parent_issue is None:
+                return Response({"error": "Parent work item not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        _ = Issue.objects.bulk_update(sub_issues, ["parent"], batch_size=10)
+            sub_issues = list(
+                Issue.issue_objects.select_for_update(of=("self",))
+                .select_related("type", "parent", "parent__type")
+                .filter(id__in=sub_issue_ids, project_id=project_id, workspace__slug=slug)
+            )
+            if len(sub_issues) != len(sub_issue_ids):
+                return Response({"error": "One or more child work items are invalid"}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                for sub_issue in sub_issues:
+                    validate_issue_hierarchy(
+                        issue=sub_issue,
+                        project_id=project_id,
+                        parent=parent_issue,
+                        issue_type=sub_issue.type,
+                    )
+            except IssueHierarchyError as error:
+                return Response({error.field: error.message}, status=status.HTTP_400_BAD_REQUEST)
+
+            previous_parents = {str(sub_issue.id): sub_issue.parent_id for sub_issue in sub_issues}
+            for sub_issue in sub_issues:
+                sub_issue.parent = parent_issue
+            Issue.objects.bulk_update(sub_issues, ["parent"], batch_size=10)
 
         updated_sub_issues = Issue.issue_objects.filter(id__in=sub_issue_ids).annotate(state_group=F("state__group"))
 
@@ -230,7 +260,9 @@ class SubIssuesEndpoint(BaseAPIView):
                 actor_id=str(request.user.id),
                 issue_id=str(sub_issue_id),
                 project_id=str(project_id),
-                current_instance=json.dumps({"parent": str(sub_issue_id)}),
+                current_instance=json.dumps(
+                    {"parent": str(previous_parents[str(sub_issue_id)]) if previous_parents[str(sub_issue_id)] else None}
+                ),
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
                 origin=base_host(request=request, is_app=True),

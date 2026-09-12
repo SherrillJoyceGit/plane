@@ -6,8 +6,10 @@
 
 import React from "react";
 import { Paperclip } from "lucide-react";
+import { observer } from "mobx-react";
 import { useTranslation } from "@plane/i18n";
 import { LinkIcon, ViewsIcon, RelationPropertyIcon } from "@plane/propel/icons";
+import { canIssueHaveChildren } from "@plane/shared-state";
 // plane imports
 import type { TIssueServiceType, TWorkItemWidgets } from "@plane/types";
 // local imports
@@ -16,6 +18,8 @@ import { IssueLinksActionButton } from "./links";
 import { RelationActionButton } from "./relations";
 import { SubIssuesActionButton } from "./sub-issues";
 import { IssueDetailWidgetButton } from "./widget-button";
+import { useIssueDetail } from "@/hooks/store/use-issue-detail";
+import { useIssueType } from "@/hooks/store/use-issue-type";
 
 type Props = {
   workspaceSlug: string;
@@ -26,14 +30,21 @@ type Props = {
   hideWidgets?: TWorkItemWidgets[];
 };
 
-export function IssueDetailWidgetActionButtons(props: Props) {
+export const IssueDetailWidgetActionButtons = observer(function IssueDetailWidgetActionButtons(props: Props) {
   const { workspaceSlug, projectId, issueId, disabled, issueServiceType, hideWidgets } = props;
   // translation
   const { t } = useTranslation();
+  const {
+    issue: { getIssueById },
+  } = useIssueDetail();
+  const { getIssueTypeById } = useIssueType();
+  const issue = getIssueById(issueId);
+  const issueType = getIssueTypeById(issue?.type_id, projectId);
+  const canHaveChildren = canIssueHaveChildren(issueType?.name, issue?.parent_id ?? null);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {!hideWidgets?.includes("sub-work-items") && (
+      {canHaveChildren && !hideWidgets?.includes("sub-work-items") && (
         <SubIssuesActionButton
           issueId={issueId}
           customButton={
@@ -92,4 +103,4 @@ export function IssueDetailWidgetActionButtons(props: Props) {
       )}
     </div>
   );
-}
+});

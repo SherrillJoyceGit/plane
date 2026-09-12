@@ -6,3 +6,4 @@
 
 export * from "./rich-filter.helper";
 export * from "./work-item-filters.helper";
+export * from "./issue-hierarchy.helper";

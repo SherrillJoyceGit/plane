@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
+import { getAllowedIssueTypeNames } from "@plane/shared-state";
 // store hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
@@ -30,6 +31,7 @@ export const IssueTypeSwitcher = observer(function IssueTypeSwitcher(props: TIss
 
   if (!issue || !issue.project_id) return <></>;
   const projectId = issue.project_id;
+  const allowedTypeNames = getAllowedIssueTypeNames(!!issue.parent_id, issue.sub_issues_count > 0);
 
   return (
     <div className="flex items-center gap-2">
@@ -38,6 +40,7 @@ export const IssueTypeSwitcher = observer(function IssueTypeSwitcher(props: TIss
         value={issue.type_id}
         projectId={projectId}
         disabled={disabled}
+        allowedTypeNames={allowedTypeNames}
         hideText
         onChange={(typeId) => {
           if (workspaceSlug && typeId !== issue.type_id)
