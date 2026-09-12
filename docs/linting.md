@@ -1,92 +1,50 @@
-# Linting in Plane - How It Works
+# 前端 Lint
 
-We use [OxLint](https://oxc.rs/docs/guide/usage/linter) for linting across the entire monorepo. OxLint is a single Rust binary that's 50-100x faster than ESLint, with zero Node.js dependencies at runtime.
+前端工作区统一使用 OxLint，规则由根目录的 `.oxlintrc.json` 管理。Lint 不依赖 TypeScript 构建产物。
 
-## Key Points
+## 命令
 
-1. **Single Root Config** - One `.oxlintrc.json` at the repo root handles all packages and apps
-2. **No Build Required** - OxLint doesn't need TypeScript build artifacts, so lint runs independently of build
-3. **Plugin Coverage** - react, typescript, jsx-a11y, import, promise, unicorn, oxc
-
-## How to Run
-
-From the root of the repo:
+在仓库根目录运行：
 
 ```bash
-# Check for lint errors
 pnpm check:lint
-
-# Auto-fix lint errors
 pnpm fix:lint
 ```
 
-To lint a specific package:
+只检查指定包或应用：
 
 ```bash
 pnpm turbo run check:lint --filter=@plane/ui
 ```
 
-## VS Code Integration
+## 范围与规则
 
-Install the [OxLint extension](https://marketplace.visualstudio.com/items?itemName=nicolo-ribaudo.vscode-oxlint) for inline errors/warnings as you type.
+- 检查 `apps/web`、`apps/admin`、`apps/space`、`apps/live` 和 `packages/*` 中的 TypeScript 与 JavaScript 文件。
+- 忽略依赖、构建产物、缓存、覆盖率、公共资源和配置文件。
+- 启用 React、TypeScript、JSX accessibility、import、promise、unicorn 和 oxc 相关规则。
 
-## What Gets Linted
+| 分类          | 级别  | 作用                   |
+| ------------- | ----- | ---------------------- |
+| `correctness` | error | 检查可能导致错误的代码 |
+| `suspicious`  | warn  | 检查可疑写法           |
+| `perf`        | warn  | 检查性能问题           |
 
-The config applies to all TypeScript and JavaScript files across:
+`react/prop-types` 已关闭；未使用变量默认警告，以 `_` 开头的变量除外。具体规则以 `.oxlintrc.json` 为准。
 
-- `apps/web`, `apps/admin`, `apps/space`, `apps/live`
-- All packages in `packages/`
+## 警告抑制
 
-**Ignored paths:**
-
-- `node_modules/`, `dist/`, `build/`, `.next/`, `.turbo/`
-- Config files (`*.config.{js,mjs,cjs,ts}`)
-- Public folders, coverage, storybook-static
-
-## Rules Overview
-
-OxLint uses category-based configuration:
-
-| Category        | Level | What It Catches                                    |
-| --------------- | ----- | -------------------------------------------------- |
-| **correctness** | error | Real bugs that will cause runtime errors            |
-| **suspicious**  | warn  | Code patterns that are likely mistakes              |
-| **perf**        | warn  | Performance anti-patterns                           |
-
-Additional rule overrides:
-- `react/prop-types` off (TypeScript handles prop validation)
-- `no-unused-vars` warns with `_` prefix pattern ignored
-- Several noisy unicorn rules disabled
-
-## Backward Compatibility
-
-OxLint supports `eslint-disable` comments, so existing inline suppressions continue to work.
-
-## Suppressing Warnings
+OxLint 兼容现有的 `eslint-disable` 注释。仅在确认警告不适用时使用：
 
 ```typescript
-// Single line
 // eslint-disable-next-line no-unused-vars
 const data = response;
-
-// Block
-/* eslint-disable no-unused-vars */
-// ... code
-/* eslint-enable no-unused-vars */
 ```
 
-**Please use sparingly** - most warnings indicate real issues that should be fixed.
+## 提交检查
 
-## Pre-commit Hook
+Husky 会对暂存文件运行 lint-staged：oxfmt 负责格式化，OxLint 自动修复可修复的问题并拒绝残留警告。提交失败时，应修复问题后重新提交。
 
-Lint-staged runs automatically on commit via Husky:
+相关配置：
 
-- oxfmt formats your staged files
-- OxLint fixes what it can (with `--deny-warnings`)
-
-If the commit fails due to lint errors, fix them before committing.
-
-## Reference Files
-
-- [.oxlintrc.json](../.oxlintrc.json) - OxLint configuration
-- [package.json](../package.json) - Available scripts
+- [.oxlintrc.json](../.oxlintrc.json)
+- [package.json](../package.json)
