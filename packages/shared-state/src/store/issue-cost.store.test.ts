@@ -5,6 +5,7 @@ import {
   canAccessIssueCost,
   isActualWorkConfirmationRequired,
   IssueCostStore,
+  resolveWorklogMemberId,
   type TIssueCostApi,
 } from "./issue-cost.store";
 
@@ -75,5 +76,15 @@ describe("cost permissions and completion", () => {
   it("recognizes only the stable completion confirmation code", () => {
     expect(isActualWorkConfirmationRequired({ code: "ACTUAL_WORK_CONFIRMATION_REQUIRED" })).toBe(true);
     expect(isActualWorkConfirmationRequired({ code: "OTHER" })).toBe(false);
+  });
+
+  it("uses the current member when assignees change after the cost panel opens", () => {
+    expect(resolveWorklogMemberId(false, "stale-assignee", "current-member", ["current-member"])).toBe(
+      "current-member"
+    );
+    expect(resolveWorklogMemberId(false, "stale-assignee", "current-member", ["other-member"])).toBe("");
+    expect(resolveWorklogMemberId(true, "selected-member", "current-member", ["current-member"])).toBe(
+      "selected-member"
+    );
   });
 });

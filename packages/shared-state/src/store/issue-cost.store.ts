@@ -40,6 +40,13 @@ export const canAccessIssueCost = (role: EUserPermissions | undefined): boolean 
 export const isActualWorkConfirmationRequired = (error: unknown): boolean =>
   (error as { code?: string } | null)?.code === "ACTUAL_WORK_CONFIRMATION_REQUIRED";
 
+export const resolveWorklogMemberId = (
+  isAdmin: boolean,
+  selectedMemberId: string,
+  currentUserId: string | undefined,
+  assigneeIds: string[]
+): string => (isAdmin ? selectedMemberId : currentUserId && assigneeIds.includes(currentUserId) ? currentUserId : "");
+
 export class IssueCostStore {
   costs: Record<string, TIssueCost | undefined> = {};
   worklogs: Record<string, TIssueWorklog[] | undefined> = {};

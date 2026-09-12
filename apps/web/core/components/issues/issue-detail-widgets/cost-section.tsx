@@ -10,6 +10,7 @@ import { LockKeyhole, Pencil, Save, Trash2, X } from "lucide-react";
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+import { resolveWorklogMemberId } from "@plane/shared-state";
 import type { TIssueWorklog } from "@plane/types";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssueType } from "@/hooks/store/use-issue-type";
@@ -81,12 +82,9 @@ export const IssueCostSection = observer(function IssueCostSection(props: Props)
   const issueType = getIssueTypeById(issue?.type_id, projectId);
   const isEstimatable = !issue?.parent_id && ["Requirement", "Task"].includes(issueType?.name ?? "");
   const stateGroup = getStateById(issue?.state_id)?.group;
+  const worklogMemberId = resolveWorklogMemberId(isAdmin, memberId, currentUser?.id, issue?.assignee_ids ?? []);
   const canCreateWorklog =
-    !disabled &&
-    cost?.can_log_actual &&
-    ["started", "completed"].includes(stateGroup ?? "") &&
-    !!memberId &&
-    (isAdmin || memberId === currentUser?.id);
+    !disabled && cost?.can_log_actual && ["started", "completed"].includes(stateGroup ?? "") && !!worklogMemberId;
   const assignees = useMemo(
     () => issue?.assignee_ids.map((id) => ({ id, name: getUserDetails(id)?.display_name ?? id })) ?? [],
     [getUserDetails, issue?.assignee_ids]
@@ -113,11 +111,11 @@ export const IssueCostSection = observer(function IssueCostSection(props: Props)
   };
 
   const createWorklog = async () => {
-    if (!memberId) return;
+    if (!worklogMemberId) return;
     setSubmitting(true);
     try {
       await issueCostStore.createWorklog(workspaceSlug, projectId, issueId, {
-        member_id: memberId,
+        member_id: worklogMemberId,
         work_date: workDate,
         person_days: personDays,
         description,
